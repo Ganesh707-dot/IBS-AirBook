@@ -1,4 +1,4 @@
-# iRetail AirBook Hub
+# IBS-AirBook
 
 > Airline retail & passenger booking platform — inspired by [IBS Software](https://www.ibsplc.com/) iRetail / iFly passenger solutions (Offer–Order–Settle–Deliver).
 
