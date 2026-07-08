@@ -1,0 +1,27 @@
+# Java / Maven
+backend/target/
+*.class
+*.jar
+*.war
+*.log
+
+# Node / Angular
+frontend/airbook-ui/node_modules/
+frontend/airbook-ui/dist/
+frontend/airbook-ui/.angular/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+*.local
