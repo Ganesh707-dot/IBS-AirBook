@@ -5,7 +5,7 @@ import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TableModule } from 'primeng/table';
-import { ApiService, Order } from '../../core/services/api.service';
+import { ApiService, Order, PlatformReservation } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -40,15 +40,15 @@ import { AuthService } from '../../core/services/auth.service';
         </a>
         <a routerLink="/stays" class="quick-card">
           <i class="pi pi-building"></i>
-          <div><strong>Hotels</strong><span>iStay luxury inventory</span></div>
+          <div><strong>Hotels</strong><span>Luxury hospitality</span></div>
         </a>
         <a routerLink="/cruise" class="quick-card">
           <i class="pi pi-compass"></i>
-          <div><strong>Cruise</strong><span>iTravel shore-to-ship</span></div>
+          <div><strong>Cruise</strong><span>Shore-to-ship packages</span></div>
         </a>
         <a routerLink="/loyalty" class="quick-card">
           <i class="pi pi-star"></i>
-          <div><strong>Loyalty</strong><span>iLoyal tiers & partners</span></div>
+          <div><strong>Loyalty</strong><span>Tiers & partners</span></div>
         </a>
         <a routerLink="/checkin" class="quick-card">
           <i class="pi pi-id-card"></i>
@@ -56,7 +56,7 @@ import { AuthService } from '../../core/services/auth.service';
         </a>
         <a routerLink="/concierge" class="quick-card">
           <i class="pi pi-sparkles"></i>
-          <div><strong>AI Concierge</strong><span>Naviq tourist assist</span></div>
+          <div><strong>AI Concierge</strong><span>Travel assistance</span></div>
         </a>
       </div>
 
@@ -86,6 +86,26 @@ import { AuthService } from '../../core/services/auth.service';
         <div class="foot">
           <a routerLink="/bookings"><p-button label="Open all trips" [link]="true"></p-button></a>
         </div>
+      </p-card>
+
+      <p-card header="Hotel & cruise reservations">
+        <p-table [value]="reservations" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr><th>Reference</th><th>Type</th><th>Product</th><th>Amount</th><th>Status</th></tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-r>
+            <tr>
+              <td><strong>{{ r.reference }}</strong></td>
+              <td><p-tag [value]="r.productType" [severity]="r.productType === 'STAY' ? 'warn' : 'info'"></p-tag></td>
+              <td>{{ r.productName }}</td>
+              <td>₹{{ r.amount | number }}</td>
+              <td><p-tag value="CONFIRMED" severity="success"></p-tag></td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="5">No hospitality or cruise reservations — browse <a routerLink="/stays">hotels</a> or <a routerLink="/cruise">cruises</a>.</td></tr>
+          </ng-template>
+        </p-table>
       </p-card>
     </div>
   `,
@@ -118,6 +138,7 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class DashboardComponent implements OnInit {
   orders: Order[] = [];
+  reservations: PlatformReservation[] = [];
   error = '';
 
   constructor(private api: ApiService, public auth: AuthService) {}
@@ -128,6 +149,10 @@ export class DashboardComponent implements OnInit {
     this.api.getOrders().subscribe({
       next: o => this.orders = o,
       error: () => this.error = 'Failed to load trips'
+    });
+    this.api.getPlatformReservations().subscribe({
+      next: r => this.reservations = r,
+      error: () => {}
     });
   }
 

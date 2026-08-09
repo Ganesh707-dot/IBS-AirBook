@@ -1,9 +1,24 @@
-# AirBook — Airline Retail Platform
+# AirBook Enterprise — Unified Travel Commerce Platform
 
-> Product name: **AirBook** · Repo: IBS-AirBook  
-> Dynamic **Offer → Order → Settle → Deliver** platform inspired by [IBS Software](https://www.ibsplc.com/) passenger retail solutions.
+> **Live demo:** https://airbook.onrender.com  
+> **Repository:** https://github.com/Ganesh707-dot/IBS-AirBook
 
-Built as an interview-ready full-stack system (Java Spring Boot + Angular/PrimeNG) with **live free market APIs**, **dynamic revenue pricing**, and an **AI BI command center**.
+Enterprise-grade travel platform covering passenger retail, hospitality, cruise, cargo intelligence, loyalty, and AI-assisted concierge — with JWT role-based access for Traveler, Analyst, and Admin workspaces.
+
+## Manager demo script (2 minutes)
+
+| Step | Login | Show |
+|------|-------|------|
+| 1 | `customer@airbook.com` / `customer123` | Home → Flights → book · Hotels/Cruise **Reserve** · My Journey |
+| 2 | `analyst@airbook.com` / `analyst123` | Retail Intelligence BI — KPIs, AI insights, forecast |
+| 3 | `admin@airbook.com` / `admin123` | Ops CMS route catalog + Intelligence dashboard |
+
+> First load on free hosting may take ~30–60s (cold start). Health: `/api/health`
+
+## Product name
+
+**AirBook Enterprise** · Repo: IBS-AirBook  
+Dynamic **Offer → Order → Settle → Deliver** with multi-domain travel commerce.
 
 ## Docs
 
@@ -37,7 +52,7 @@ Built as an interview-ready full-stack system (Java Spring Boot + Angular/PrimeN
 | AI BI | Local retail analyst + optional [Groq](https://console.groq.com/) LLM (`GROQ_API_KEY`) |
 | Analytics | KPI board, revenue trend, OOSD funnel, demand forecast |
 | Security | JWT + enterprise RBAC (ADMIN / ANALYST / CUSTOMER) |
-| Domains | iFly passenger · iStay hotels · iTravel cruise · iCargo · iLoyal · Naviq AI concierge |
+| Domains | Passenger retail · Hospitality · Cruise · Cargo · Loyalty · AI concierge |
 | API docs | OpenAPI / Swagger UI |
 
 ## Architecture

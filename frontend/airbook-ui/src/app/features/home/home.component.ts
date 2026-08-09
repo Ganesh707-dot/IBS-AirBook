@@ -17,16 +17,16 @@ import { AuthService } from '../../core/services/auth.service';
     <section class="premium-hero">
       <div class="container-wide hero-grid">
         <div class="copy">
-          <p-tag value="Where AI meets deep domain expertise" severity="success"></p-tag>
-          <h1>Empowering airlines &amp; travel for a new world</h1>
-          <p class="lead">AirBook unifies passenger retail, luxury hospitality, cruise, cargo, loyalty, and Naviq-style AI tourist assistance — modular like IBS Software platforms.</p>
+          <p-tag value="Unified travel commerce" severity="success"></p-tag>
+          <h1>Enterprise platform for airlines &amp; hospitality</h1>
+          <p class="lead">AirBook orchestrates passenger retail, luxury stays, cruise packages, cargo intelligence, loyalty, and AI-assisted travel — with role-based workspaces for operations, analytics, and travelers.</p>
           <div class="cta">
             <p-button label="Search flights" icon="pi pi-search" (onClick)="goSearch()"></p-button>
             <p-button label="AI Concierge" icon="pi pi-sparkles" severity="secondary" [outlined]="true" (onClick)="go('/concierge')"></p-button>
             <p-button label="Luxury stays" icon="pi pi-building" [outlined]="true" (onClick)="go('/stays')"></p-button>
           </div>
           <div class="trust">
-            <span>iFly</span><span>iStay</span><span>iTravel</span><span>iCargo</span><span>iLoyal</span><span>Naviq</span>
+            <span>Passenger</span><span>Hospitality</span><span>Cruise</span><span>Cargo</span><span>Loyalty</span><span>AI</span>
           </div>
         </div>
         <div class="panel">
@@ -71,8 +71,8 @@ import { AuthService } from '../../core/services/auth.service';
     <section class="band">
       <div class="container-wide band-grid">
         <div>
-          <h2>Journey of Joy</h2>
-          <p>Agentic AI helps you orchestrate decisions that continuously optimize revenue, costs, and guest experiences — from disruption recovery to personalized cruise &amp; hotel packages.</p>
+          <h2>Agentic travel intelligence</h2>
+          <p>AI orchestrates personalization, disruption recovery, and cross-domain upsell across flights, hotels, and cruise — optimizing revenue and guest experience.</p>
         </div>
         <div class="band-actions">
           @if (auth.canAccessBi()) {

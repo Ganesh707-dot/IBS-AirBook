@@ -1,21 +1,27 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 import { ApiService, Cruise } from '../../core/services/api.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-cruise',
   standalone: true,
-  imports: [CommonModule, FormsModule, TagModule, ButtonModule, SelectModule],
+  imports: [CommonModule, FormsModule, TagModule, ButtonModule, SelectModule, ToastModule, RouterLink],
+  providers: [MessageService],
   template: `
+    <p-toast position="top-right"></p-toast>
     <section class="page-hero">
       <div class="container-wide">
-        <p-tag value="iTravel Cruise" severity="info"></p-tag>
-        <h1 class="page-title" style="color:#fff;margin-top:.6rem">Tour &amp; cruise experiences</h1>
-        <p class="page-sub" style="color:rgba(255,255,255,.8)">Shore-to-ship itineraries with real-time packages, onboard upsell, and fly-cruise soft connects.</p>
+        <p-tag value="Cruise & Tours" severity="info"></p-tag>
+        <h1 class="page-title light">Premium cruise &amp; tour packages</h1>
+        <p class="page-sub light">Shore-to-ship retail with confirmed cabin reservations, excursion packs, and loyalty earn.</p>
       </div>
     </section>
     <div class="container-wide body">
@@ -40,7 +46,7 @@ import { ApiService, Cruise } from '../../core/services/api.service';
             <div class="right">
               <small>from</small>
               <strong>₹{{ c.priceFrom | number }}</strong>
-              <p-button label="Reserve cabin" icon="pi pi-compass"></p-button>
+              <p-button label="Reserve cabin" icon="pi pi-compass" [loading]="bookingId === c.id" (onClick)="reserve(c)"></p-button>
             </div>
           </article>
         }
@@ -49,6 +55,8 @@ import { ApiService, Cruise } from '../../core/services/api.service';
   `,
   styles: [`
     .page-hero { background:linear-gradient(120deg,#071526,#0f3550 45%,#0a4a55); padding:2.4rem 0 2rem; margin-bottom:1.25rem; }
+    .light { color:#fff; }
+    .page-sub.light { color:rgba(255,255,255,.82); max-width:680px; }
     .filters { display:flex; gap:1rem; align-items:end; margin-bottom:1rem; }
     .field label { display:block; font-size:.75rem; font-weight:650; margin-bottom:.3rem; color:#667; }
     .w { min-width:200px; }
@@ -68,8 +76,35 @@ import { ApiService, Cruise } from '../../core/services/api.service';
 export class CruiseComponent implements OnInit {
   cruises: Cruise[] = [];
   tier: string | null = null;
+  bookingId: string | null = null;
   tiers = ['PREMIUM', 'LUXURY', 'ULTRA_LUXURY'].map(v => ({ label: v.replace('_', ' '), value: v }));
-  constructor(private api: ApiService) {}
+
+  constructor(
+    private api: ApiService,
+    private auth: AuthService,
+    private router: Router,
+    private toast: MessageService
+  ) {}
+
   ngOnInit() { this.load(); }
+
   load() { this.api.getCruises(this.tier || undefined).subscribe(c => this.cruises = c); }
+
+  reserve(cruise: Cruise) {
+    if (!this.auth.isLoggedIn()) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    this.bookingId = cruise.id;
+    this.api.bookCruise(cruise.id).subscribe({
+      next: r => {
+        this.toast.add({ severity: 'success', summary: 'Cabin reserved', detail: `${r.productName} · Ref ${r.reference}` });
+        this.bookingId = null;
+      },
+      error: e => {
+        this.toast.add({ severity: 'error', summary: 'Reservation failed', detail: e.error?.message || 'Try again' });
+        this.bookingId = null;
+      }
+    });
+  }
 }

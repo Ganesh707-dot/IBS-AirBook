@@ -36,12 +36,22 @@ public class DataInitializer implements CommandLineRunner {
     private final OfferService offerService;
     private final PasswordEncoder passwordEncoder;
 
+    @org.springframework.beans.factory.annotation.Value("${airbook.seed.warm-markets:true}")
+    private boolean warmMarkets;
+
+    @org.springframework.beans.factory.annotation.Value("${airbook.seed.demo-orders:48}")
+    private int demoOrders;
+
     @Override
     public void run(String... args) {
         seedUsers();
         seedAirports();
         seedAncillaries();
-        warmPopularMarkets();
+        if (warmMarkets) {
+            warmPopularMarkets();
+        } else {
+            log.info("Skipping market warm-up (prod fast-start)");
+        }
         simulateRetailHistory();
         log.info("AirBook enterprise data plane ready — airports={}, routes={}, orders={}",
                 airportRepository.count(), routeRepository.count(), orderRepository.count());
@@ -159,7 +169,7 @@ public class DataInitializer implements CommandLineRunner {
         String[] pays = {"CARD", "UPI", "WALLET"};
         String[] ancOpts = {"", "BAG15", "MEAL", "BAG15,MEAL", "PRIO,SEAT", "LOUNGE", "WIFI,INS"};
 
-        for (int i = 0; i < 48; i++) {
+        for (int i = 0; i < demoOrders; i++) {
             Route route = routes.get(ThreadLocalRandom.current().nextInt(routes.size()));
             LocalDateTime created = LocalDateTime.now().minusDays(ThreadLocalRandom.current().nextInt(14))
                     .minusHours(ThreadLocalRandom.current().nextInt(20));

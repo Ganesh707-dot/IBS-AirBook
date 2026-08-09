@@ -185,6 +185,18 @@ export class ApiService {
   askConcierge(question: string, locale = 'en'): Observable<ConciergeReply> {
     return this.http.post<ConciergeReply>(`${this.API}/platform/concierge/ask`, { question, locale });
   }
+
+  bookStay(stayId: string): Observable<PlatformReservation> {
+    return this.http.post<PlatformReservation>(`${this.API}/platform/stays/${stayId}/book`, {});
+  }
+
+  bookCruise(cruiseId: string): Observable<PlatformReservation> {
+    return this.http.post<PlatformReservation>(`${this.API}/platform/cruises/${cruiseId}/book`, {});
+  }
+
+  getPlatformReservations(): Observable<PlatformReservation[]> {
+    return this.http.get<PlatformReservation[]>(`${this.API}/platform/reservations`);
+  }
 }
 
 export interface Solution {
@@ -207,4 +219,8 @@ export interface LoyaltyTier {
 export interface LoyaltyPartner { name: string; category: string; offer: string; }
 export interface ConciergeReply {
   answer: string; mode: string; suggestedActions: string[]; context: Record<string, unknown>;
+}
+export interface PlatformReservation {
+  reference: string; productType: string; productId: string; productName: string;
+  amount: number; currency: string; status: string; createdAt: string;
 }

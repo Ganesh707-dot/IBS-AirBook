@@ -58,10 +58,25 @@ public class PlatformController {
     @GetMapping("/loyalty")
     public ResponseEntity<Map<String, Object>> loyalty() {
         return ResponseEntity.ok(Map.of(
-                "program", "AirBook Rewards · iLoyal",
+                "program", "AirBook Rewards",
                 "tiers", platformService.loyaltyTiers(),
                 "partners", platformService.loyaltyPartners()
         ));
+    }
+
+    @GetMapping("/reservations")
+    public ResponseEntity<List<PlatformService.ReservationDto>> reservations() {
+        return ResponseEntity.ok(platformService.reservationsForCurrentUser());
+    }
+
+    @PostMapping("/stays/{id}/book")
+    public ResponseEntity<PlatformService.ReservationDto> bookStay(@PathVariable String id) {
+        return ResponseEntity.ok(platformService.bookStay(id));
+    }
+
+    @PostMapping("/cruises/{id}/book")
+    public ResponseEntity<PlatformService.ReservationDto> bookCruise(@PathVariable String id) {
+        return ResponseEntity.ok(platformService.bookCruise(id));
     }
 
     public record ConciergeAsk(@NotBlank String question, String locale) {}

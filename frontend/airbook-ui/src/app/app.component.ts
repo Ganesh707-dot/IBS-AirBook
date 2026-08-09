@@ -12,13 +12,20 @@ import { AuthService } from './core/services/auth.service';
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ButtonModule, TagModule, ToastModule],
   template: `
     <p-toast position="top-right"></p-toast>
+    @if (!auth.isLoggedIn()) {
+      <div class="demo-bar">
+        <span>Enterprise demo access</span>
+        Traveler <code>customer&#64;airbook.com</code> · Analyst <code>analyst&#64;airbook.com</code> · Admin <code>admin&#64;airbook.com</code> · Password <code>*123</code>
+        <a routerLink="/login">Sign in →</a>
+      </div>
+    }
     <header class="topbar">
       <div class="container-wide topbar-inner">
         <a routerLink="/" class="brand">
-          <span class="mark">IBS</span>
+          <span class="mark">AB</span>
           <div>
-            <strong>AirBook Platform</strong>
-            <small>Passenger · Hospitality · Cruise · Cargo · Loyalty · AI</small>
+            <strong>AirBook Enterprise</strong>
+            <small>Unified travel commerce platform</small>
           </div>
         </a>
 
@@ -27,15 +34,15 @@ import { AuthService } from './core/services/auth.service';
             <button type="button" class="mega-btn" [class.open]="solutionsOpen">Solutions</button>
             @if (solutionsOpen) {
               <div class="mega-panel">
-                <a routerLink="/search" (click)="solutionsOpen=false"><i class="pi pi-send"></i><div><b>iFly Passenger</b><span>Offer → Order retail</span></div></a>
-                <a routerLink="/stays" (click)="solutionsOpen=false"><i class="pi pi-building"></i><div><b>iStay Hotels</b><span>Luxury hospitality</span></div></a>
-                <a routerLink="/cruise" (click)="solutionsOpen=false"><i class="pi pi-compass"></i><div><b>iTravel Cruise</b><span>Shore-to-ship</span></div></a>
-                <a routerLink="/cargo" (click)="solutionsOpen=false"><i class="pi pi-box"></i><div><b>iCargo</b><span>Air cargo lanes</span></div></a>
-                <a routerLink="/loyalty" (click)="solutionsOpen=false"><i class="pi pi-star"></i><div><b>iLoyal</b><span>Member engagement</span></div></a>
-                <a routerLink="/concierge" (click)="solutionsOpen=false"><i class="pi pi-sparkles"></i><div><b>Naviq Concierge</b><span>AI tourist assist</span></div></a>
-                <a routerLink="/tracker" (click)="solutionsOpen=false"><i class="pi pi-map"></i><div><b>iFlight Ops</b><span>Live sky map</span></div></a>
+                <a routerLink="/search" (click)="solutionsOpen=false"><i class="pi pi-send"></i><div><b>Passenger Retail</b><span>Offer → Order → Deliver</span></div></a>
+                <a routerLink="/stays" (click)="solutionsOpen=false"><i class="pi pi-building"></i><div><b>Hospitality</b><span>Luxury hotel distribution</span></div></a>
+                <a routerLink="/cruise" (click)="solutionsOpen=false"><i class="pi pi-compass"></i><div><b>Cruise & Tours</b><span>Shore-to-ship packages</span></div></a>
+                <a routerLink="/cargo" (click)="solutionsOpen=false"><i class="pi pi-box"></i><div><b>Cargo Intelligence</b><span>Lane capacity & commodities</span></div></a>
+                <a routerLink="/loyalty" (click)="solutionsOpen=false"><i class="pi pi-star"></i><div><b>Loyalty Platform</b><span>Tiers & partner offers</span></div></a>
+                <a routerLink="/concierge" (click)="solutionsOpen=false"><i class="pi pi-sparkles"></i><div><b>AI Concierge</b><span>Tourist assistance</span></div></a>
+                <a routerLink="/tracker" (click)="solutionsOpen=false"><i class="pi pi-map"></i><div><b>Operations Center</b><span>Live network map</span></div></a>
                 @if (auth.canAccessBi()) {
-                  <a routerLink="/bi" (click)="solutionsOpen=false"><i class="pi pi-chart-line"></i><div><b>Retail BI</b><span>Analyst intelligence</span></div></a>
+                  <a routerLink="/bi" (click)="solutionsOpen=false"><i class="pi pi-chart-line"></i><div><b>Retail Intelligence</b><span>Analyst workspace</span></div></a>
                 }
               </div>
             }
@@ -55,7 +62,7 @@ import { AuthService } from './core/services/auth.service';
             <a routerLink="/bi" routerLinkActive="active">Analyst BI</a>
           }
           @if (auth.isAdmin()) {
-            <a routerLink="/bi" routerLinkActive="active">AI BI</a>
+            <a routerLink="/bi" routerLinkActive="active">Intelligence</a>
             <a routerLink="/admin" routerLinkActive="active">Ops CMS</a>
           }
         </nav>
@@ -77,8 +84,8 @@ import { AuthService } from './core/services/auth.service';
     <footer class="footer">
       <div class="container-wide foot-grid">
         <div>
-          <strong>AirBook by IBS-style architecture</strong>
-          <p>Modular airline + hospitality platform: iFly · iStay · iTravel · iCargo · iLoyal · Naviq AI.</p>
+          <strong>AirBook Enterprise Platform</strong>
+          <p>Passenger retail · Hospitality · Cruise · Cargo · Loyalty · AI concierge · Role-based workspaces.</p>
         </div>
         <div class="links">
           <a routerLink="/stays">Hotels</a>
@@ -87,11 +94,15 @@ import { AuthService } from './core/services/auth.service';
           <a routerLink="/loyalty">Loyalty</a>
           <a routerLink="/concierge">AI Concierge</a>
         </div>
-        <div class="meta">© 2026 AirBook demo · Inspired by IBS Software domains</div>
+        <div class="meta">Production API · JWT RBAC · OpenSky · Dynamic pricing</div>
       </div>
     </footer>
   `,
   styles: [`
+    .demo-bar { background:#102a44; color:rgba(255,255,255,.88); font-size:.78rem; padding:.45rem 1rem; display:flex; gap:.65rem; flex-wrap:wrap; align-items:center; justify-content:center; border-bottom:1px solid rgba(255,255,255,.08); }
+    .demo-bar span { font-weight:700; color:#1ec8b2; }
+    .demo-bar code { background:rgba(255,255,255,.08); padding:.1rem .35rem; border-radius:4px; font-size:.72rem; }
+    .demo-bar a { color:#1ec8b2; font-weight:650; margin-left:.25rem; }
     .topbar { background: linear-gradient(90deg, #050d18, #0c2238 55%, #0a2e2a); color:#fff; position:sticky; top:0; z-index:1200; border-bottom:1px solid rgba(255,255,255,.08); }
     .topbar-inner { display:flex; align-items:center; justify-content:space-between; gap:1rem; min-height:74px; }
     .brand { display:flex; align-items:center; gap:.75rem; color:#fff; }
@@ -104,7 +115,7 @@ import { AuthService } from './core/services/auth.service';
     .mega { position:relative; }
     .mega-btn { background:transparent; border:1px solid rgba(255,255,255,.18); color:#fff; border-radius:999px; padding:.35rem .85rem; font-weight:650; cursor:pointer; font:inherit; }
     .mega-btn.open, .mega-btn:hover { border-color:#1ec8b2; color:#1ec8b2; }
-    .mega-panel { position:absolute; top:calc(100% + .55rem); left:0; width:640px; display:grid; grid-template-columns:1fr 1fr; gap:.35rem; background:#0b1726; border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:.75rem; box-shadow:0 24px 60px rgba(0,0,0,.45); }
+    .mega-panel { position:absolute; top:calc(100% + .55rem); left:0; width:640px; display:grid; grid-template-columns:1fr 1fr; gap:.35rem; background:#0b1726; border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:.75rem; box-shadow:0 24px 60px rgba(0,0,0,.45); z-index:1300; }
     .mega-panel a { display:flex; gap:.7rem; align-items:flex-start; padding:.65rem .7rem; border-radius:12px; color:#fff; }
     .mega-panel a:hover { background:rgba(30,200,178,.12); }
     .mega-panel i { color:#1ec8b2; margin-top:.15rem; }
@@ -126,6 +137,7 @@ import { AuthService } from './core/services/auth.service';
       .mega-panel { width: min(92vw, 420px); grid-template-columns:1fr; }
       .foot-grid { grid-template-columns:1fr; }
       .uname { display:none; }
+      .demo-bar { font-size:.7rem; }
     }
   `]
 })

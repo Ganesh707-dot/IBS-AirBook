@@ -11,7 +11,7 @@ import { ApiService, LoyaltyPartner, LoyaltyTier } from '../../core/services/api
   template: `
     <section class="page-hero">
       <div class="container-wide">
-        <p-tag value="iLoyal · Loyalty" severity="warn"></p-tag>
+        <p-tag value="Loyalty Platform" severity="warn"></p-tag>
         <h1 class="page-title" style="color:#fff;margin-top:.6rem">{{ program || 'AirBook Rewards' }}</h1>
         <p class="page-sub" style="color:rgba(255,255,255,.8)">Configurable tiers and partner offers that accelerate member engagement across air, hotel, and cruise.</p>
       </div>

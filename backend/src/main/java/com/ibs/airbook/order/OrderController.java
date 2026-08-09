@@ -31,7 +31,13 @@ public class OrderController {
     }
 
     @GetMapping("/health")
-    public ResponseEntity<Map<String, String>> health() {
-        return ResponseEntity.ok(Map.of("status", "UP", "service", "AirBook API"));
+    public ResponseEntity<Map<String, Object>> health(
+            @org.springframework.beans.factory.annotation.Value("${airbook.version:1.0.0}") String version) {
+        return ResponseEntity.ok(Map.of(
+                "status", "UP",
+                "service", "AirBook Enterprise API",
+                "version", version,
+                "timestamp", java.time.Instant.now().toString()
+        ));
     }
 }

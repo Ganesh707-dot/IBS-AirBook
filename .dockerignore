@@ -1,0 +1,15 @@
+.git
+.gitignore
+**/.angular
+**/node_modules
+**/dist
+**/.idea
+**/.vscode
+**/*.md
+docs/
+Jenkinsfile
+docker-compose.yml
+frontend/airbook-ui/.angular
+frontend/airbook-ui/node_modules
+frontend/airbook-ui/dist
+backend/target

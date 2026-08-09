@@ -1,44 +1,54 @@
 package com.ibs.airbook.platform;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * IBS-inspired multi-domain catalog: passenger retail, hospitality (iStay),
- * cruise (iTravel), cargo (iCargo), loyalty (iLoyal), and Naviq-style AI concierge.
+ * Unified travel commerce catalog: passenger retail, hospitality, cruise,
+ * cargo intelligence, loyalty, and AI-assisted tourist services.
  */
 @Service
+@RequiredArgsConstructor
 public class PlatformService {
+
+    private final PlatformReservationRepository reservationRepository;
+    private static final AtomicLong REF_SEQ = new AtomicLong(1000);
 
     public List<SolutionDto> solutions() {
         return List.of(
-                sol("iFly", "Airline Passenger Solutions", "PASSENGER",
-                        "NDC-ready offer & order retail across channels — search, book, settle, deliver.",
+                sol("PASSENGER", "Passenger Retail", "PASSENGER",
+                        "Offer, order, settle, and deliver across NDC-ready retail channels.",
                         "/search", "pi-send", new String[]{"Offer", "Order", "Settle", "Deliver"}),
-                sol("Naviq Concierge", "AI Tourist Assistance", "AI",
-                        "Agentic AI that orchestrates trip personalization, disruption guidance, and destination tips.",
+                sol("CONCIERGE", "AI Travel Concierge", "AI",
+                        "Agentic assistance for personalization, disruptions, and destination guidance.",
                         "/concierge", "pi-sparkles", new String[]{"Personalization", "Disruption", "Insights"}),
-                sol("iStay", "Hospitality Sales & Distribution", "HOSPITALITY",
-                        "Unified hotel inventory with luxury stays, packages, and cross-sell from the air journey.",
+                sol("HOSPITALITY", "Hospitality Distribution", "HOSPITALITY",
+                        "Luxury hotel inventory with packages and flight-to-stay cross-sell.",
                         "/stays", "pi-building", new String[]{"Hotels", "Packages", "Upsell"}),
-                sol("iTravel Cruise", "Tour & Cruise Management", "CRUISE",
-                        "Shore-to-ship itineraries with real-time packages and onboard experience upsell.",
-                        "/cruise", "pi-compass", new String[]{"Itineraries", "Shore excursions", "Onboard"}),
-                sol("iCargo", "Air Cargo Solutions", "CARGO",
-                        "Lane visibility, capacity signals, and collaboration across the cargo value chain.",
-                        "/cargo", "pi-box", new String[]{"Lanes", "Capacity", "ONE Record"}),
-                sol("iLoyal", "Loyalty Management", "LOYALTY",
-                        "Configurable tiers and partner offers that accelerate member engagement revenue.",
+                sol("CRUISE", "Cruise & Tours", "CRUISE",
+                        "Shore-to-ship itineraries with onboard services and excursion retail.",
+                        "/cruise", "pi-compass", new String[]{"Itineraries", "Excursions", "Onboard"}),
+                sol("CARGO", "Cargo Intelligence", "CARGO",
+                        "Lane capacity, commodity mix, and collaboration across the cargo chain.",
+                        "/cargo", "pi-box", new String[]{"Lanes", "Capacity", "e-AWB"}),
+                sol("LOYALTY", "Loyalty Platform", "LOYALTY",
+                        "Tiered rewards and partner offers that drive engagement revenue.",
                         "/loyalty", "pi-star", new String[]{"Tiers", "Partners", "Offers"}),
-                sol("iFlight Ops", "Operations & Crew", "OPS",
-                        "Situational awareness for disruption and crew — demo pulse for retail engineering.",
-                        "/tracker", "pi-sitemap", new String[]{"Live map", "Demand", "Disruption"}),
-                sol("Retail BI", "AI Intelligence Plane", "ANALYTICS",
-                        "GMV, OOSD funnel, demand forecast, and natural-language retail analyst.",
+                sol("OPS", "Operations Center", "OPS",
+                        "Live situational awareness for network and disruption management.",
+                        "/tracker", "pi-sitemap", new String[]{"Live map", "Demand", "Recovery"}),
+                sol("ANALYTICS", "Retail Intelligence", "ANALYTICS",
+                        "GMV, funnel analytics, demand forecast, and natural-language analyst.",
                         "/bi", "pi-chart-line", new String[]{"KPIs", "Forecast", "Ask AI"})
         );
     }
@@ -137,25 +147,25 @@ public class PlatformService {
         List<String> actions;
 
         if (q.contains("hotel") || q.contains("stay") || q.contains("resort")) {
-            answer = "For a luxury layover, pair DXB or SIN hubs with iStay ultra-luxury inventory — Burj Vista and Marina Bay Heritage score highest on loyalty boost and transfer inclusion. I can also bundle late checkout after a red-eye.";
-            actions = List.of("Open Hotels", "Compare DXB vs SIN stays", "Apply Diamond late checkout");
+            answer = "For a luxury layover, pair DXB or SIN hubs with ultra-luxury hospitality inventory — skyline suites and marina properties score highest on loyalty boost and transfer inclusion.";
+            actions = List.of("Browse hotels", "Compare DXB vs SIN stays", "Apply tier late checkout");
         } else if (q.contains("cruise") || q.contains("ship") || q.contains("shore")) {
-            answer = "iTravel Cruise recommends Arabian Gulf Explorer for winter sun (7N) or Mediterranean Jewel for culture-heavy shore days. Both support shore-to-ship packages and onboard specialty dining upsell.";
+            answer = "Cruise retail recommends Arabian Gulf Explorer for winter sun (7N) or Mediterranean Jewel for culture-heavy shore days. Both support shore-to-ship packages and onboard dining upsell.";
             actions = List.of("Browse cruises", "Add shore excursion pack", "Check loyalty onboard credit");
         } else if (q.contains("disrupt") || q.contains("delay") || q.contains("cancel") || q.contains("missed")) {
-            answer = "Disruption playbook: 1) Protect onward hotel/cruise with flexible rate, 2) Rebook via Offer search on alternate OD, 3) Use Naviq to message lounge + transfer. Diamond members get chauffeur re-accommodation priority.";
+            answer = "Disruption playbook: 1) Protect onward hotel/cruise with flexible rate, 2) Rebook via Offer search on alternate OD, 3) Use concierge for lounge + transfer coordination. Top-tier members get chauffeur re-accommodation priority.";
             actions = List.of("Search alternate flights", "Hold hotel flexibly", "Open live tracker");
         } else if (q.contains("family") || q.contains("kids") || q.contains("honeymoon") || q.contains("romantic")) {
-            answer = "For honeymoon: Overwater Sanctuary + Indian Ocean Atolls cruise. For families: Dragon Seas Discovery with kids club and iStay riverside Bangkok as pre-cruise hotel.";
+            answer = "For honeymoon: overwater sanctuary + Indian Ocean atolls cruise. For families: Southeast Asia discovery cruise with kids club and riverside Bangkok as pre-cruise hotel.";
             actions = List.of("View Maldives stay", "View Asia cruise", "Build package");
         } else if (q.contains("cargo") || q.contains("freight") || q.contains("uld")) {
-            answer = "iCargo lanes COK–DXB (perishables) and BOM–LHR (pharma cool-chain) are hottest this week. Capacity scores are live signals for retail + cargo collaboration demos.";
+            answer = "Cargo lanes COK–DXB (perishables) and BOM–LHR (pharma cool-chain) are hottest this week. Capacity scores are live collaboration signals across retail and logistics.";
             actions = List.of("Open cargo lanes", "View pharma cool-chain");
         } else if (q.contains("point") || q.contains("loyalty") || q.contains("tier") || q.contains("diamond")) {
-            answer = "iLoyal: Pearl → Sapphire (25k) → Ruby (60k) → Diamond (120k). Diamond unlocks chauffeur, suite upgrades, and dedicated concierge. Stays and cruises accelerate earn with partner multipliers.";
+            answer = "Loyalty tiers: Pearl → Sapphire (25k) → Ruby (60k) → Diamond (120k). Diamond unlocks chauffeur, suite upgrades, and dedicated concierge. Stays and cruises accelerate earn with partner multipliers.";
             actions = List.of("View loyalty tiers", "See partner offers");
         } else {
-            answer = "I'm your Naviq-style travel concierge — ask about hotels, cruises, disruptions, family trips, loyalty, or cargo. I combine AirBook retail with hospitality and cruise packages to optimize revenue and guest experience.";
+            answer = "I'm your AI travel concierge — ask about hotels, cruises, disruptions, family trips, loyalty, or cargo. I orchestrate passenger retail with hospitality and cruise packages to optimize revenue and guest experience.";
             actions = List.of("Suggest a 5-day luxury trip", "Hotels near DXB", "Best family cruise");
         }
 
@@ -163,6 +173,51 @@ public class PlatformService {
                 "localeHint", localeHint == null ? "en" : localeHint,
                 "domains", List.of("PASSENGER", "HOSPITALITY", "CRUISE", "LOYALTY", "CARGO")
         ));
+    }
+
+    @Transactional
+    public ReservationDto bookStay(String stayId) {
+        StayDto stay = stays().stream()
+                .filter(s -> s.id().equals(stayId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Stay not found: " + stayId));
+        return saveReservation(PlatformReservation.ProductType.STAY, stay.id(), stay.name(), stay.priceFrom(), stay.currency());
+    }
+
+    @Transactional
+    public ReservationDto bookCruise(String cruiseId) {
+        CruiseDto cruise = cruises().stream()
+                .filter(c -> c.id().equals(cruiseId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Cruise not found: " + cruiseId));
+        return saveReservation(PlatformReservation.ProductType.CRUISE, cruise.id(), cruise.name(), cruise.priceFrom(), cruise.currency());
+    }
+
+    public List<ReservationDto> reservationsForCurrentUser() {
+        return reservationRepository.findByCustomerEmailOrderByCreatedAtDesc(currentUserEmail())
+                .stream().map(ReservationDto::from).toList();
+    }
+
+    private ReservationDto saveReservation(PlatformReservation.ProductType type, String productId,
+                                           String productName, BigDecimal amount, String currency) {
+        String prefix = type == PlatformReservation.ProductType.STAY ? "HTL" : "CRZ";
+        String ref = prefix + String.format("%08d", REF_SEQ.incrementAndGet());
+        PlatformReservation saved = reservationRepository.save(PlatformReservation.builder()
+                .reference(ref)
+                .customerEmail(currentUserEmail())
+                .productType(type)
+                .productId(productId)
+                .productName(productName)
+                .amount(amount)
+                .currency(currency)
+                .status(PlatformReservation.ReservationStatus.CONFIRMED)
+                .createdAt(LocalDateTime.now())
+                .build());
+        return ReservationDto.from(saved);
+    }
+
+    private String currentUserEmail() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
     private SolutionDto sol(String code, String name, String domain, String blurb, String route, String icon, String[] pillars) {
@@ -205,4 +260,21 @@ public class PlatformService {
     public record LoyaltyTierDto(String code, String name, int pointsThreshold, double earnMultiplier, String perk) {}
     public record LoyaltyPartnerDto(String name, String category, String offer) {}
     public record ConciergeResponse(String answer, String mode, List<String> suggestedActions, Map<String, Object> context) {}
+    public record ReservationDto(
+            String reference, String productType, String productId, String productName,
+            BigDecimal amount, String currency, String status, LocalDateTime createdAt
+    ) {
+        static ReservationDto from(PlatformReservation r) {
+            return new ReservationDto(
+                    r.getReference(),
+                    r.getProductType().name(),
+                    r.getProductId(),
+                    r.getProductName(),
+                    r.getAmount(),
+                    r.getCurrency(),
+                    r.getStatus().name(),
+                    r.getCreatedAt()
+            );
+        }
+    }
 }
