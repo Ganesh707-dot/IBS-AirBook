@@ -6,6 +6,8 @@ backend/target/
 *.log
 
 # Node / Angular
+node_modules/
+package-lock.json
 frontend/airbook-ui/node_modules/
 frontend/airbook-ui/dist/
 frontend/airbook-ui/.angular/
