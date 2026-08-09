@@ -1,4 +1,4 @@
-name: Deploy to Fly.io
+name: Deploy to Fly.io (free — UI + API one URL)
 
 on:
   push:
@@ -8,10 +8,25 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ secrets.FLY_API_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/airbook-ui/package-lock.json
+
+      - name: Build UI + embed into backend
+        run: bash scripts/build-all.sh
+
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only
+
+      - name: Deploy to Fly.io
+        run: flyctl deploy --remote-only --dockerfile Dockerfile.prod --ha=false
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Print live URL
+        if: success()
+        run: echo "Live app => https://airbook-enterprise.fly.dev"

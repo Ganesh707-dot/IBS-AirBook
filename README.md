@@ -1,17 +1,10 @@
 # AirBook Enterprise — IBS Interview Demo Platform
 
-> **Share this URL with users (recommended):** https://airbook-enterprise.pages.dev  
-> **Backend API:** https://airbook-enterprise.fly.dev  
-> **Setup guide:** [docs/CLOUDFLARE-DEPLOY.md](docs/CLOUDFLARE-DEPLOY.md)  
+> **Deploy free (UI + API one URL):** [docs/FREE-DEPLOY.md](docs/FREE-DEPLOY.md)  
+> **Live URL after deploy:** https://airbook-enterprise.fly.dev  
 > **Repository:** https://github.com/Ganesh707-dot/IBS-AirBook
 
-**Cloudflare Pages** = fast UI for all users. **Fly.io** = free Java API backend. One link, no Render cold-start issues.
-
-## Quick deploy (free)
-
-1. **Backend:** `fly auth login && fly deploy` → https://airbook-enterprise.fly.dev/api/health  
-2. **Frontend:** Cloudflare Pages → connect GitHub → root `frontend/airbook-ui` → set `API_ORIGIN`  
-3. **Share:** https://airbook-enterprise.pages.dev
+**Fly.io (free)** = Angular UI + Java API together. No Render cold-start issues. Cloudflare Pages optional for faster CDN front-end.
 
 ## Manager / IBS demo (2 min)
 

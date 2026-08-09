@@ -1,20 +1,21 @@
-# Fly.io — recommended FREE deployment for IBS interview demo
-# Docs: https://fly.io/docs/getting-started/
+# Fly.io — FREE all-in-one deploy (Angular UI + Java API on ONE URL)
+# Live URL after deploy: https://airbook-enterprise.fly.dev
 #
-# One-time setup:
-#   1. Install Fly CLI: https://fly.io/docs/hands-on/install-flyctl/
-#   2. fly auth login
-#   3. fly launch --no-deploy   (use existing fly.toml, say NO to Postgres)
-#   4. fly secrets set JWT_SECRET="$(openssl rand -base64 32)"
-#   5. fly deploy
+# Fastest path (no local tools): GitHub Actions
+#   1. Create free account: https://fly.io/app/sign-up
+#   2. fly auth login && fly tokens create deploy -x 999999h
+#   3. GitHub repo → Settings → Secrets → FLY_API_TOKEN = paste token
+#   4. Actions → "Deploy to Fly.io" → Run workflow
 #
-# Your app URL: https://airbook-enterprise.fly.dev
+# Local CLI:
+#   bash scripts/build-all.sh
+#   fly deploy --dockerfile Dockerfile.prod
 
 app = 'airbook-enterprise'
 primary_region = 'sin'
 
 [build]
-  dockerfile = 'Dockerfile'
+  dockerfile = 'Dockerfile.prod'
 
 [env]
   SPRING_PROFILES_ACTIVE = 'prod'

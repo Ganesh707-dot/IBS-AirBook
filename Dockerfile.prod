@@ -1,0 +1,20 @@
+# Fast production image — frontend must be copied into backend/src/main/resources/static before build.
+# Used by GitHub Actions + Fly.io (see scripts/build-all.sh).
+FROM eclipse-temurin:17-jdk-alpine AS backend-build
+WORKDIR /app
+COPY backend/pom.xml .
+RUN apk add --no-cache maven && mvn -q -B dependency:go-offline -DskipTests
+COPY backend/src ./src
+RUN mvn -q -B -DskipTests package
+
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+RUN apk add --no-cache wget
+ENV SPRING_PROFILES_ACTIVE=prod
+ENV PORT=8080
+ENV JAVA_OPTS="-XX:+UseContainerSupport -Xms128m -Xmx384m -Djava.security.egd=file:/dev/./urandom"
+COPY --from=backend-build /app/target/airbook-api-1.0.0.jar app.jar
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=8s --start-period=90s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:8080/api/health | grep -q UP || exit 1
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
