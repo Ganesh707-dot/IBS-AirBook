@@ -9,6 +9,7 @@ Built as an interview-ready full-stack system (Java Spring Boot + Angular/PrimeN
 
 - [Technical architecture](docs/architecture.md) — modules, booking APIs, AI design  
 - [User manual](docs/user-manual.md) — how to book, tracker, AI BI demo script  
+- [Deployment guide](docs/deployment.md) — local, Docker, Compose, Render
 
 ## Booking & AI (short answers)
 
