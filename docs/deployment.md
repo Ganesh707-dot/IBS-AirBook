@@ -71,22 +71,44 @@ Compose sets `SPRING_PROFILES_ACTIVE=docker` on the backend.
 
 ---
 
-## 4. Render free (persistent public URL)
+## 4. Fly.io free (recommended for IBS interview)
+
+Best free option for this Spring Boot Docker app — faster wake than Render.
+
+```bash
+# Install: https://fly.io/docs/hands-on/install-flyctl/
+fly auth login
+fly launch --no-deploy    # use existing fly.toml, skip Postgres
+fly secrets set JWT_SECRET="$(openssl rand -base64 32)"
+fly deploy
+```
+
+App URL: **https://airbook-enterprise.fly.dev**
+
+Optional CI: add `FLY_API_TOKEN` to GitHub secrets → pushes to `main` auto-deploy via `.github/workflows/fly-deploy.yml`.
+
+Notes:
+- Free tier sleeps when idle; first request wakes the machine (~15–45s).
+- Memory set to 512MB with `-Xmx384m` for stable JVM on free VMs.
+
+---
+
+## 5. Render free (backup URL)
 
 Repo includes [`render.yaml`](../render.yaml) with service name **`airbook`**.
 
 1. Push latest `main` to GitHub: https://github.com/Ganesh707-dot/IBS-AirBook  
 2. In [Render](https://render.com) → **New** → **Blueprint** → select this repo  
-3. Apply blueprint → wait for Docker build  
+3. Apply blueprint → wait for Docker build (5–10 min)  
 4. App URL: **https://airbook.onrender.com**
 
 Notes:
-- Free tier may cold-start after idle (first request slower).  
+- Free tier cold-start can be **30–90s** after idle — not ideal for live manager demos.
 - Set `GROQ_API_KEY` in Render env if you want LLM mode for AI BI.
 
 ---
 
-## 5. Quick public tunnel (temporary)
+## 6. Quick public tunnel (temporary)
 
 For a short recruiter share from your laptop (URL name is random):
 

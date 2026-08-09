@@ -4,6 +4,7 @@ import com.ibs.airbook.catalog.Airport;
 import com.ibs.airbook.catalog.AirportRepository;
 import com.ibs.airbook.integration.fx.FrankfurterClient;
 import com.ibs.airbook.integration.opensky.OpenSkyClient;
+import com.ibs.airbook.integration.weather.OpenMeteoClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,24 +21,49 @@ public class MarketController {
 
     private final OpenSkyClient openSkyClient;
     private final FrankfurterClient frankfurterClient;
+    private final OpenMeteoClient openMeteoClient;
     private final AirportRepository airportRepository;
 
     @GetMapping("/pulse")
     public ResponseEntity<Map<String, Object>> pulse(
             @RequestParam(defaultValue = "COK") String origin,
             @RequestParam(defaultValue = "DXB") String destination) {
-        // Pulse stays fast: local demand signal + cached FX (OpenSky reserved for /live-flights)
-        int demand = 45 + Math.abs((origin + "-" + destination).toUpperCase().hashCode() % 40);
+        String o = origin.toUpperCase();
+        String d = destination.toUpperCase();
+        int demand = openSkyClient.estimateCorridorDemand(o, d);
         BigDecimal fx = frankfurterClient.eurToInr();
+        var destWx = weatherAt(d);
         return ResponseEntity.ok(Map.of(
-                "origin", origin.toUpperCase(),
-                "destination", destination.toUpperCase(),
+                "origin", o,
+                "destination", d,
                 "demandScore", demand,
                 "eurInr", fx,
-                "liveFlightsSample", List.of(),
-                "sources", List.of("OpenSky Network ADS-B", "Frankfurter ECB FX"),
+                "destinationWeather", destWx,
+                "sources", List.of(
+                        OpenSkyClient.PUBLIC_API,
+                        FrankfurterClient.API,
+                        OpenMeteoClient.API
+                ),
                 "openSkyApi", OpenSkyClient.PUBLIC_API
         ));
+    }
+
+    private Map<String, Object> weatherAt(String iata) {
+        return airportRepository.findById(iata).map(this::weatherForAirport).orElse(Map.of(
+                "iata", iata, "summary", "Weather unavailable", "source", OpenMeteoClient.API
+        ));
+    }
+
+    private Map<String, Object> weatherForAirport(Airport ap) {
+        var wx = openMeteoClient.current(ap.getLatitude(), ap.getLongitude());
+        return Map.of(
+                "iata", ap.getIata(),
+                "city", ap.getCity(),
+                "temperatureC", wx.temperatureC(),
+                "condition", openMeteoClient.describeCode(wx.weatherCode()),
+                "windKmh", wx.windKmh(),
+                "source", wx.source()
+        );
     }
 
     /**

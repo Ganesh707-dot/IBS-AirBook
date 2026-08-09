@@ -26,7 +26,7 @@ import { AuthService } from '../../core/services/auth.service';
             <p-button label="Luxury stays" icon="pi pi-building" [outlined]="true" (onClick)="go('/stays')"></p-button>
           </div>
           <div class="trust">
-            <span>Passenger</span><span>Hospitality</span><span>Cruise</span><span>Cargo</span><span>Loyalty</span><span>AI</span>
+            <span>OpenSky live ADS-B</span><span>Frankfurter FX</span><span>Open-Meteo weather</span><span>JWT RBAC</span><span>OOSD retail</span>
           </div>
         </div>
         <div class="panel">

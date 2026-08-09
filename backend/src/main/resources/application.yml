@@ -85,5 +85,5 @@ spring:
 airbook:
   seed:
     warm-markets: false
-    demo-orders: 24
-  version: "2.1.0"
+    demo-orders: 12
+  version: "2.2.0"

@@ -19,7 +19,7 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 RUN apk add --no-cache wget
 ENV SPRING_PROFILES_ACTIVE=prod
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
+ENV JAVA_OPTS="-XX:+UseContainerSupport -Xms128m -Xmx384m -Djava.security.egd=file:/dev/./urandom"
 COPY --from=backend-build /app/target/airbook-api-1.0.0.jar app.jar
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=8s --start-period=120s --retries=3 \

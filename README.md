@@ -1,30 +1,38 @@
-# AirBook Enterprise — Unified Travel Commerce Platform
+# AirBook Enterprise — IBS Interview Demo Platform
 
-> **Live demo:** https://airbook.onrender.com  
-> **Repository:** https://github.com/Ganesh707-dot/IBS-AirBook
+> **Recommended (free):** https://airbook-enterprise.fly.dev — deploy with `fly deploy`  
+> **Backup:** https://airbook.onrender.com (cold start 30–90s on free tier)  
+> **Repository:** https://github.com/Ganesh707-dot/IBS-AirBook  
+> **Interview script:** [docs/IBS-INTERVIEW-DEMO.md](docs/IBS-INTERVIEW-DEMO.md)
 
-Enterprise-grade travel platform covering passenger retail, hospitality, cruise, cargo intelligence, loyalty, and AI-assisted concierge — with JWT role-based access for Traveler, Analyst, and Admin workspaces.
+Modular airline + hospitality platform for IBS interviews: OOSD passenger retail, hospitality/cruise, cargo, loyalty, AI concierge, analyst BI — with **real free APIs** (OpenSky, Frankfurter, Open-Meteo).
 
-## Manager demo script (2 minutes)
+## Free deploy
+
+| Platform | How | URL |
+|----------|-----|-----|
+| **Fly.io** (best free) | `fly auth login && fly deploy` | airbook-enterprise.fly.dev |
+| Render | Blueprint from repo | airbook.onrender.com |
+| Local | `docker build -t airbook . && docker run -p 8080:8080 airbook` | localhost:8080 |
+
+> Free tiers sleep when idle. First open may take **30–60s** — wait for `/api/health` → `"status":"UP"`.
+
+## Manager / IBS demo (2 min)
 
 | Step | Login | Show |
 |------|-------|------|
-| 1 | `customer@airbook.com` / `customer123` | Home → Flights → book · Hotels/Cruise **Reserve** · My Journey |
-| 2 | `analyst@airbook.com` / `analyst123` | Retail Intelligence BI — KPIs, AI insights, forecast |
-| 3 | `admin@airbook.com` / `admin123` | Ops CMS route catalog + Intelligence dashboard |
+| 1 | `customer@airbook.com` / `customer123` | Flights → book → Hotels/Cruise Reserve → My Journey |
+| 2 | `analyst@airbook.com` / `analyst123` | Retail Intelligence BI |
+| 3 | `admin@airbook.com` / `admin123` | Ops CMS + Intelligence |
 
-> First load on free hosting may take ~30–60s (cold start). Health: `/api/health`
-
-## Product name
-
-**AirBook Enterprise** · Repo: IBS-AirBook  
-Dynamic **Offer → Order → Settle → Deliver** with multi-domain travel commerce.
+Full script: **[docs/IBS-INTERVIEW-DEMO.md](docs/IBS-INTERVIEW-DEMO.md)**
 
 ## Docs
 
 - [Technical architecture](docs/architecture.md) — modules, booking APIs, AI design  
 - [User manual](docs/user-manual.md) — how to book, tracker, AI BI demo script  
-- [Deployment guide](docs/deployment.md) — local, Docker, Compose, Render
+- [Deployment guide](docs/deployment.md) — local, Docker, Fly.io, Render  
+- [IBS interview demo script](docs/IBS-INTERVIEW-DEMO.md) — 5-minute manager walkthrough
 
 ## Booking & AI (short answers)
 
@@ -45,8 +53,9 @@ Dynamic **Offer → Order → Settle → Deliver** with multi-domain travel comm
 | Capability | Implementation |
 |------------|----------------|
 | Dynamic offers | Generated per OD + travel date (haversine schedules, inventory, fare families) |
-| Live demand | [OpenSky Network](https://opensky-network.org/) ADS-B traffic density (free, no key) |
-| FX-aware pricing | [Frankfurter](https://www.frankfurter.app/) ECB EUR→INR rates (free, no key) |
+| Live demand | [OpenSky Network](https://opensky-network.org/) ADS-B (free) |
+| FX-aware pricing | [Frankfurter](https://api.frankfurter.app/) ECB EUR→INR (free) |
+| Destination weather | [Open-Meteo](https://api.open-meteo.com/) (free) |
 | RM pricing | Demand × DOW × lead-time × fare-family multipliers |
 | OOSD lifecycle | `PENDING_PAYMENT` → `SETTLED` → `CHECKED_IN` + boarding pass deliver |
 | AI BI | Local retail analyst + optional [Groq](https://console.groq.com/) LLM (`GROQ_API_KEY`) |

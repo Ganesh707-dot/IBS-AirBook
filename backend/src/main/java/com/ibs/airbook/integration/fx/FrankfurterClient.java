@@ -19,14 +19,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class FrankfurterClient {
 
+    public static final String API = "https://api.frankfurter.app/latest?from=EUR&to=INR";
+
     private final RestTemplate restTemplate;
 
     @Cacheable("fxRates")
     @SuppressWarnings("unchecked")
     public BigDecimal eurToInr() {
         try {
-            Map<String, Object> body = restTemplate.getForObject(
-                    "https://api.frankfurter.app/latest?from=EUR&to=INR", Map.class);
+            Map<String, Object> body = restTemplate.getForObject(API, Map.class);
             if (body != null && body.get("rates") instanceof Map<?, ?> rates) {
                 Object inr = rates.get("INR");
                 if (inr != null) {
