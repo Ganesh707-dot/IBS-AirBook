@@ -36,7 +36,7 @@ Built as an interview-ready full-stack system (Java Spring Boot + Angular/PrimeN
 | OOSD lifecycle | `PENDING_PAYMENT` → `SETTLED` → `CHECKED_IN` + boarding pass deliver |
 | AI BI | Local retail analyst + optional [Groq](https://console.groq.com/) LLM (`GROQ_API_KEY`) |
 | Analytics | KPI board, revenue trend, OOSD funnel, demand forecast |
-| Security | JWT + RBAC (ADMIN / CUSTOMER) |
+| Security | JWT + enterprise RBAC (ADMIN / ANALYST / CUSTOMER) |
 | API docs | OpenAPI / Swagger UI |
 
 ## Architecture

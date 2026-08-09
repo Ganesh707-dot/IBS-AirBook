@@ -4,10 +4,12 @@ import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
+export type UserRole = 'ADMIN' | 'ANALYST' | 'CUSTOMER';
+
 export interface AuthUser {
   email: string;
   fullName: string;
-  role: string;
+  role: UserRole | string;
   token: string;
 }
 
@@ -35,8 +37,24 @@ export class AuthService {
   }
 
   isLoggedIn() { return !!this.user(); }
-  isAdmin() { return this.user()?.role === 'ADMIN'; }
+  role() { return (this.user()?.role || '').toUpperCase(); }
+  isAdmin() { return this.role() === 'ADMIN'; }
+  isAnalyst() { return this.role() === 'ANALYST'; }
+  isCustomer() { return this.role() === 'CUSTOMER'; }
+  hasAnyRole(...roles: string[]) {
+    const r = this.role();
+    return roles.map(x => x.toUpperCase()).includes(r);
+  }
+  canAccessBi() { return this.hasAnyRole('ADMIN', 'ANALYST'); }
   getToken() { return this.user()?.token ?? ''; }
+
+  /** Role-based landing after login */
+  homeRoute(): string {
+    if (this.isAdmin()) return '/admin';
+    if (this.isAnalyst()) return '/bi';
+    if (this.isCustomer()) return '/dashboard';
+    return '/search';
+  }
 
   private loadStored(): AuthUser | null {
     const raw = localStorage.getItem('airbook_user');

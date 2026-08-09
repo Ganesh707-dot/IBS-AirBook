@@ -1,8 +1,13 @@
 import { Component, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { TagModule } from 'primeng/tag';
+import { InputTextModule } from 'primeng/inputtext';
+import { MessageModule } from 'primeng/message';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ApiService, DashboardPayload } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -11,89 +16,126 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-bi',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [
+    CommonModule, FormsModule, ButtonModule, CardModule, TagModule,
+    InputTextModule, MessageModule, ProgressSpinnerModule
+  ],
   template: `
-    <div class="container">
-      <div class="head">
+    <div class="container bi-page">
+      <div class="hero">
         <div>
-          <h2>AI Retail BI Command Center</h2>
-          <p>Live OOSD KPIs, demand signals (OpenSky), FX (Frankfurter), and AI analyst.</p>
+          <p-tag [value]="auth.isAdmin() ? 'ADMIN · ANALYTICS' : 'ANALYST WORKSPACE'" severity="info"></p-tag>
+          <h1>AI Retail BI Command Center</h1>
+          <p>Live OOSD KPIs, demand signals, FX, and natural-language retail analyst — restricted to ADMIN & ANALYST.</p>
         </div>
-        <button class="btn btn-outline" (click)="refresh()">Refresh</button>
+        <p-button label="Refresh" icon="pi pi-refresh" [outlined]="true" (onClick)="refresh()"></p-button>
       </div>
 
-      @if (!auth.isLoggedIn()) {
-        <div class="alert-error">Login required for BI. Use <a routerLink="/login">admin&#64;airbook.com / admin123</a></div>
-      } @else if (error) {
-        <div class="alert-error">{{ error }}</div>
+      @if (error) {
+        <p-message severity="error" [text]="error" styleClass="w-full"></p-message>
+      } @else if (!dash && loading) {
+        <div class="loading"><p-progressSpinner strokeWidth="3" /></div>
       } @else if (dash) {
         <div class="kpi-grid">
-          <div class="kpi card"><span>GMV</span><strong>₹{{ dash.kpis.grossMerchandiseValue | number }}</strong></div>
-          <div class="kpi card"><span>Orders</span><strong>{{ dash.kpis.totalOrders }}</strong></div>
-          <div class="kpi card"><span>AOV</span><strong>₹{{ dash.kpis.averageOrderValue | number }}</strong></div>
-          <div class="kpi card"><span>Settle %</span><strong>{{ dash.kpis.settlementRate }}%</strong></div>
-          <div class="kpi card"><span>Check-in %</span><strong>{{ dash.kpis.checkInRate }}%</strong></div>
-          <div class="kpi card"><span>Ancillary attach</span><strong>{{ dash.kpis.ancillaryAttachRate }}%</strong></div>
+          <div class="kpi"><span>GMV</span><strong>₹{{ dash.kpis.grossMerchandiseValue | number }}</strong></div>
+          <div class="kpi"><span>Orders</span><strong>{{ dash.kpis.totalOrders }}</strong></div>
+          <div class="kpi"><span>AOV</span><strong>₹{{ dash.kpis.averageOrderValue | number }}</strong></div>
+          <div class="kpi"><span>Settle %</span><strong>{{ dash.kpis.settlementRate }}%</strong></div>
+          <div class="kpi"><span>Check-in %</span><strong>{{ dash.kpis.checkInRate }}%</strong></div>
+          <div class="kpi"><span>Ancillary attach</span><strong>{{ dash.kpis.ancillaryAttachRate }}%</strong></div>
         </div>
 
         <div class="charts">
-          <div class="card"><h3>Revenue trend (14d)</h3><canvas #revChart></canvas></div>
-          <div class="card"><h3>OOSD funnel</h3><canvas #funnelChart></canvas></div>
+          <p-card header="Revenue trend (14d)"><canvas #revChart></canvas></p-card>
+          <p-card header="OOSD funnel"><canvas #funnelChart></canvas></p-card>
         </div>
 
         <div class="split">
-          <div class="card">
-            <h3>AI Insights</h3>
+          <p-card header="AI Insights">
             @for (i of insights; track i.title) {
               <div class="insight">
-                <div class="insight-top"><strong>{{ i.title }}</strong><span>{{ (i.confidence * 100) | number:'1.0-0' }}%</span></div>
+                <div class="insight-top">
+                  <strong>{{ i.title }}</strong>
+                  <p-tag [value]="((i.confidence * 100) | number:'1.0-0') + '%'" severity="success"></p-tag>
+                </div>
                 <p>{{ i.detail }}</p>
               </div>
             }
-          </div>
-          <div class="card">
-            <h3>Ask the Retail Analyst</h3>
-            <div class="form-group"><input [(ngModel)]="question" placeholder="e.g. How is ancillary attach performing?"></div>
-            <button class="btn btn-primary" (click)="ask()" [disabled]="asking">{{ asking ? 'Thinking...' : 'Ask AI' }}</button>
+            @if (!insights.length) { <p class="muted">No insights yet.</p> }
+          </p-card>
+
+          <p-card header="Ask the Retail Analyst">
+            <div class="ask-row">
+              <input pInputText class="w-full" [(ngModel)]="question" placeholder="e.g. How is ancillary attach performing?" />
+              <p-button label="Ask AI" icon="pi pi-sparkles" [loading]="asking" (onClick)="ask()"></p-button>
+            </div>
             @if (answer) {
               <div class="answer">
                 <small>Mode: {{ answerMode }}</small>
                 <p>{{ answer }}</p>
               </div>
             }
-            <h4 style="margin-top:1.25rem">Demand forecast</h4>
+            <h4>Demand forecast</h4>
             <div class="forecast-row">
-              <input [(ngModel)]="fcOrigin" maxlength="3">
-              <input [(ngModel)]="fcDest" maxlength="3">
-              <button class="btn btn-outline" (click)="forecast()">Run</button>
+              <input pInputText [(ngModel)]="fcOrigin" maxlength="3" class="iata" />
+              <input pInputText [(ngModel)]="fcDest" maxlength="3" class="iata" />
+              <p-button label="Run" [outlined]="true" (onClick)="forecast()"></p-button>
             </div>
             @if (forecastData) {
-              <p>Live demand {{ forecastData.liveDemandScore }}/100 · model {{ forecastData.model }}</p>
+              <p class="muted">Live demand {{ forecastData.liveDemandScore }}/100 · model {{ forecastData.model }}</p>
               <ul>
                 @for (h of forecastData.horizon; track h.dayOffset) {
                   <li>D+{{ h.dayOffset }}: {{ h.demandIndex }} ({{ h.pricingBias }})</li>
                 }
               </ul>
             }
-          </div>
+          </p-card>
         </div>
+
+        @if (dash.topRoutes?.length) {
+          <p-card header="Top routes by revenue">
+            <div class="routes">
+              @for (r of dash.topRoutes; track r.routeKey) {
+                <div class="route-row">
+                  <strong>{{ r.routeKey }}</strong>
+                  <span>{{ r.bookings }} bookings</span>
+                  <span>₹{{ r.revenue | number }}</span>
+                </div>
+              }
+            </div>
+          </p-card>
+        }
       }
     </div>
   `,
   styles: [`
-    .head { display:flex; justify-content:space-between; gap:1rem; align-items:flex-start; margin-bottom:1.25rem; }
-    h2 { color: var(--navy); margin-bottom:0.25rem; }
-    .kpi-grid { display:grid; grid-template-columns: repeat(6, 1fr); gap:0.85rem; margin-bottom:1.25rem; }
+    .bi-page { display:grid; gap:1.1rem; }
+    .hero { display:flex; justify-content:space-between; gap:1rem; align-items:flex-start;
+      background: linear-gradient(120deg, #071526, #0f3a4a 60%, #0a5548);
+      color:#fff; border-radius:18px; padding:1.4rem 1.5rem; }
+    .hero h1 { margin:.45rem 0 .35rem; font-size:1.65rem; }
+    .hero p { margin:0; opacity:.78; max-width:560px; }
+    .kpi-grid { display:grid; grid-template-columns: repeat(6, 1fr); gap:0.85rem; }
+    .kpi { background:#fff; border:1px solid var(--gray-300); border-radius:14px; padding:1rem; }
     .kpi span { display:block; font-size:0.75rem; color:#667; }
     .kpi strong { font-size:1.15rem; color:var(--navy); }
-    .charts { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem; }
+    .charts { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
     .split { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
     .insight { border-bottom:1px solid var(--gray-300); padding:0.75rem 0; }
-    .insight-top { display:flex; justify-content:space-between; margin-bottom:0.25rem; }
-    .answer { margin-top:1rem; background:var(--gray-100); padding:0.85rem; border-radius:8px; }
-    .forecast-row { display:flex; gap:0.5rem; margin-bottom:0.75rem; }
-    .forecast-row input { width:70px; padding:0.5rem; border:1px solid var(--gray-300); border-radius:6px; }
-    @media (max-width:900px) { .kpi-grid,.charts,.split { grid-template-columns:1fr; } }
+    .insight:last-child { border-bottom:none; }
+    .insight-top { display:flex; justify-content:space-between; gap:.5rem; margin-bottom:0.25rem; align-items:center; }
+    .ask-row { display:flex; gap:.5rem; margin-bottom:1rem; }
+    .w-full { width:100%; }
+    .answer { margin-top:.5rem; background:var(--gray-100); padding:0.85rem; border-radius:10px; }
+    .answer small { color:#667; }
+    h4 { margin:1.25rem 0 .6rem; color:var(--navy); }
+    .forecast-row { display:flex; gap:0.5rem; margin-bottom:0.75rem; align-items:center; }
+    .iata { width:72px; text-transform:uppercase; }
+    .muted { color:#667; font-size:.9rem; }
+    .loading { display:flex; justify-content:center; padding:3rem; }
+    .routes { display:grid; gap:.55rem; }
+    .route-row { display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:.5rem; padding:.55rem 0; border-bottom:1px solid var(--gray-300); }
+    @media (max-width:900px) { .kpi-grid,.charts,.split { grid-template-columns:1fr; } .ask-row { flex-direction:column; } }
   `]
 })
 export class BiComponent implements OnInit, AfterViewInit {
@@ -103,6 +145,7 @@ export class BiComponent implements OnInit, AfterViewInit {
   dash: DashboardPayload | null = null;
   insights: any[] = [];
   error = '';
+  loading = false;
   question = 'Where should we push yield this week?';
   answer = ''; answerMode = ''; asking = false;
   fcOrigin = 'COK'; fcDest = 'DXB'; forecastData: any = null;
@@ -116,13 +159,13 @@ export class BiComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() { this.chartsReady = true; this.renderCharts(); }
 
   refresh() {
-    if (!this.auth.isLoggedIn()) return;
     this.error = '';
+    this.loading = true;
     this.api.getDashboard().subscribe({
-      next: d => { this.dash = d; setTimeout(() => this.renderCharts()); },
-      error: () => this.error = 'Failed to load analytics dashboard'
+      next: d => { this.dash = d; this.loading = false; setTimeout(() => this.renderCharts()); },
+      error: () => { this.error = 'Analytics denied — ADMIN or ANALYST role required'; this.loading = false; }
     });
-    this.api.getAiInsights().subscribe({ next: i => this.insights = i });
+    this.api.getAiInsights().subscribe({ next: i => this.insights = i, error: () => {} });
   }
 
   ask() {

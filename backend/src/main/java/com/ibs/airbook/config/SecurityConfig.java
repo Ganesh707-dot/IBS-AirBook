@@ -26,6 +26,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+/**
+ * Enterprise RBAC:
+ * - CUSTOMER: book / settle / check-in / trips
+ * - ANALYST: analytics + AI BI (read intelligence plane)
+ * - ADMIN: catalog CMS + analytics + AI (full ops)
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -49,8 +55,15 @@ public class SecurityConfig {
                                 "/swagger-ui.html", "/h2-console/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/offers/**", "/api/catalog/ancillaries",
                                 "/api/market/**").permitAll()
-                        .requestMatchers("/api/analytics/**", "/api/ai/**").authenticated()
+                        // Customer booking personalization (upsell ranking)
+                        .requestMatchers(HttpMethod.GET, "/api/ai/ancillary-recommendations")
+                                .authenticated()
+                        // Intelligence plane — Admin + Analyst only
+                        .requestMatchers("/api/analytics/**", "/api/ai/**")
+                                .hasAnyRole("ADMIN", "ANALYST")
+                        // Catalog CMS — Admin only
                         .requestMatchers("/api/catalog/**").hasRole("ADMIN")
+                        // Retail journey — any authenticated role
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll())
                 .authenticationProvider(authenticationProvider())

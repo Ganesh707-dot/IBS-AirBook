@@ -5,6 +5,10 @@
   --teal-dark: #009688;
   --surface: #f3f6fb;
   --text: #122033;
+  --gray-100: #eef2f7;
+  --gray-300: #d5dee8;
+  --danger: #c62828;
+  --success: #1b7a4a;
 }
 
 * { box-sizing: border-box; }
@@ -37,6 +41,89 @@ a { color: var(--teal); text-decoration: none; }
   margin: 0 0 1.25rem;
   color: #5b6b7c;
 }
+
+.card {
+  background: #fff;
+  border: 1px solid var(--gray-300);
+  border-radius: 14px;
+  padding: 1.15rem 1.25rem;
+  box-shadow: 0 8px 24px rgba(7, 21, 38, 0.04);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  font-weight: 650;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-primary { background: var(--teal); color: #fff; }
+.btn-primary:hover { background: var(--teal-dark); }
+.btn-outline { background: transparent; border: 1px solid var(--gray-300); color: var(--navy); }
+.btn-outline:hover { border-color: var(--teal); color: var(--teal); }
+.btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+.form-group label { font-size: 0.78rem; font-weight: 650; color: #5b6b7c; }
+.form-group input,
+.form-group select,
+.form-group textarea {
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  font: inherit;
+  background: #fff;
+}
+
+.alert-error, .alert-success {
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin: 0.85rem 0;
+  font-size: 0.9rem;
+}
+.alert-error { background: #fdecea; color: var(--danger); border: 1px solid #f5c6c2; }
+.alert-success { background: #e8f6ef; color: var(--success); border: 1px solid #b7e0c8; }
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.badge-pending-payment { background: #fff3cd; color: #856404; }
+.badge-settled { background: #d1ecf1; color: #0c5460; }
+.badge-checked-in { background: #d4edda; color: #155724; }
+.badge-cancelled { background: #f8d7da; color: #721c24; }
+
+table.card {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+}
+table.card th, table.card td {
+  text-align: left;
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid var(--gray-300);
+  font-size: 0.9rem;
+}
+table.card th {
+  background: var(--gray-100);
+  color: #5b6b7c;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+table.card tr:last-child td { border-bottom: none; }
 
 .leaflet-container {
   width: 100%;

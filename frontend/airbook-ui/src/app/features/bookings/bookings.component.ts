@@ -1,65 +1,97 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { TagModule } from 'primeng/tag';
+import { CardModule } from 'primeng/card';
+import { MessageModule } from 'primeng/message';
 import { ApiService, Order } from '../../core/services/api.service';
 
 @Component({
   selector: 'app-bookings',
   standalone: true,
-  imports: [CommonModule, DatePipe, RouterLink],
+  imports: [CommonModule, DatePipe, RouterLink, TableModule, ButtonModule, TagModule, CardModule, MessageModule],
   template: `
     <div class="container">
-      <h2>My Bookings</h2>
-      @if (error) { <div class="alert-error">{{ error }}</div> }
-      @if (!orders.length && !error) { <p>No bookings yet. <a routerLink="/search">Search flights</a></p> }
-      @if (orders.length) {
-        <table class="card">
-          <thead><tr><th>Reference</th><th>Passenger</th><th>Pax</th><th>Amount</th><th>Status</th><th>Payment</th><th>Date</th><th></th></tr></thead>
-          <tbody>
-            @for (o of orders; track o.id) {
-              <tr>
-                <td><strong>{{ o.bookingReference }}</strong></td>
-                <td>{{ o.passengerName }}</td>
-                <td>{{ o.passengers }}</td>
-                <td>₹{{ o.totalAmount | number }}</td>
-                <td><span class="badge badge-{{ statusClass(o.status) }}">{{ o.status }}</span></td>
-                <td>{{ o.paymentId || '—' }}</td>
-                <td>{{ o.createdAt | date:'medium' }}</td>
-                <td>
-                  @if (o.status === 'PENDING_PAYMENT') {
-                    <button class="btn btn-primary btn-sm" (click)="pay(o)">Settle</button>
-                  }
-                  @if (o.status === 'SETTLED') {
-                    <a routerLink="/checkin" class="btn btn-outline btn-sm">Check-in</a>
-                  }
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      }
+      <div class="head">
+        <div>
+          <h2 class="page-title">My Trips</h2>
+          <p class="page-sub">Customer booking ledger — settle payments and jump to check-in.</p>
+        </div>
+        <a routerLink="/search"><p-button label="Book flight" icon="pi pi-plus"></p-button></a>
+      </div>
+
+      @if (error) { <p-message severity="error" [text]="error" styleClass="w-full mb"></p-message> }
+
+      <p-card>
+        <p-table [value]="orders" [paginator]="true" [rows]="8" styleClass="p-datatable-sm" [loading]="loading">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Reference</th>
+              <th>Passenger</th>
+              <th>Pax</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Payment</th>
+              <th>Date</th>
+              <th></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-o>
+            <tr>
+              <td><strong>{{ o.bookingReference }}</strong></td>
+              <td>{{ o.passengerName }}</td>
+              <td>{{ o.passengers }}</td>
+              <td>₹{{ o.totalAmount | number }}</td>
+              <td><p-tag [value]="o.status" [severity]="severity(o.status)"></p-tag></td>
+              <td>{{ o.paymentId || '—' }}</td>
+              <td>{{ o.createdAt | date:'medium' }}</td>
+              <td class="acts">
+                @if (o.status === 'PENDING_PAYMENT') {
+                  <p-button label="Settle" size="small" (onClick)="pay(o)"></p-button>
+                }
+                @if (o.status === 'SETTLED') {
+                  <a routerLink="/checkin"><p-button label="Check-in" size="small" [outlined]="true"></p-button></a>
+                }
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="8">No bookings yet. <a routerLink="/search">Search flights</a></td></tr>
+          </ng-template>
+        </p-table>
+      </p-card>
     </div>
   `,
   styles: [`
-    h2 { margin-bottom: 1rem; color: var(--navy); }
-    .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+    .head { display:flex; justify-content:space-between; gap:1rem; align-items:flex-start; margin-bottom:.5rem; }
+    .mb { margin-bottom:1rem; display:block; }
+    .acts { display:flex; gap:.35rem; }
   `]
 })
 export class BookingsComponent implements OnInit {
-  orders: Order[] = []; error = '';
+  orders: Order[] = [];
+  error = '';
+  loading = false;
 
   constructor(private api: ApiService) {}
 
   ngOnInit() { this.load(); }
 
-  statusClass(status: string) {
-    return status.toLowerCase().replace(/_/g, '-');
+  severity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+    if (status === 'CHECKED_IN') return 'success';
+    if (status === 'SETTLED') return 'info';
+    if (status === 'PENDING_PAYMENT') return 'warn';
+    if (status === 'CANCELLED') return 'danger';
+    return 'secondary';
   }
 
   load() {
+    this.loading = true;
     this.api.getOrders().subscribe({
-      next: o => this.orders = o,
-      error: () => this.error = 'Failed to load bookings'
+      next: o => { this.orders = o; this.loading = false; },
+      error: () => { this.error = 'Failed to load bookings'; this.loading = false; }
     });
   }
 

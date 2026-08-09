@@ -4,11 +4,11 @@ Demo guide for recruiters and interview walkthroughs.
 
 ## Login
 
-| Role | Email | Password | Use for |
-|------|-------|----------|---------|
-| Customer | `customer@airbook.com` | `customer123` | Search, book, settle, check-in |
-| Admin | `admin@airbook.com` | `admin123` | Admin CMS + AI BI |
-| Analyst | `analyst@airbook.com` | `analyst123` | AI BI dashboards |
+| Role | Email | Password | Lands on | Use for |
+|------|-------|----------|----------|---------|
+| Customer | `customer@airbook.com` | `customer123` | `/dashboard` | Search, book, settle, check-in |
+| Analyst | `analyst@airbook.com` | `analyst123` | `/bi` | AI BI dashboards only |
+| Admin | `admin@airbook.com` | `admin123` | `/admin` | Route CMS + AI BI |
 
 ---
 

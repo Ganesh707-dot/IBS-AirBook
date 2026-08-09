@@ -1,75 +1,230 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { SelectModule } from 'primeng/select';
+import { TagModule } from 'primeng/tag';
+import { CardModule } from 'primeng/card';
+import { MessageModule } from 'primeng/message';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { ApiService, Offer } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule, FormsModule, TableModule, ButtonModule, DialogModule,
+    InputTextModule, InputNumberModule, SelectModule, TagModule, CardModule,
+    MessageModule, IconFieldModule, InputIconModule
+  ],
   template: `
-    <div class="container">
-      <h2>Admin CMS — Route Catalog</h2>
-      @if (!auth.isAdmin()) { <div class="alert-error">Admin access only. Login as admin&#64;airbook.com</div> }
-      @else {
-        <div class="card" style="margin-bottom:1.5rem">
-          <h3>Add Route</h3>
-          <div class="admin-grid">
-            <div class="form-group"><label>Origin</label><input [(ngModel)]="form.origin" maxlength="3"></div>
-            <div class="form-group"><label>Destination</label><input [(ngModel)]="form.destination" maxlength="3"></div>
-            <div class="form-group"><label>Travel date</label><input type="date" [(ngModel)]="form.travelDate"></div>
-            <div class="form-group"><label>Flight No</label><input [(ngModel)]="form.flightNumber"></div>
-            <div class="form-group"><label>Departure</label><input [(ngModel)]="form.departureTime" placeholder="HH:MM"></div>
-            <div class="form-group"><label>Arrival</label><input [(ngModel)]="form.arrivalTime" placeholder="HH:MM"></div>
-            <div class="form-group"><label>Duration (min)</label><input [(ngModel)]="form.durationMinutes" type="number"></div>
-            <div class="form-group"><label>Price</label><input [(ngModel)]="form.basePrice" type="number"></div>
-            <div class="form-group"><label>Fare Family</label><select [(ngModel)]="form.fareFamily"><option>ECONOMY</option><option>BUSINESS</option><option>PREMIUM</option></select></div>
-            <div class="form-group"><label>Seats</label><input [(ngModel)]="form.availableSeats" type="number"></div>
-            <button class="btn btn-primary" (click)="addRoute()">Add Route</button>
-          </div>
-          @if (msg) { <div class="alert-success">{{ msg }}</div> }
+    <div class="container admin-page">
+      <div class="hero">
+        <div>
+          <p-tag value="ADMIN WORKSPACE" severity="warn"></p-tag>
+          <h1>Retail Ops CMS</h1>
+          <p>Manage published route inventory, fare families, and seat capacity for the Offer plane.</p>
         </div>
-        <table class="card">
-          <thead><tr><th>Flight</th><th>Route</th><th>Schedule</th><th>Fare</th><th>Price</th><th>Seats</th></tr></thead>
-          <tbody>
-            @for (r of routes; track r.id) {
-              <tr>
-                <td>{{ r.flightNumber }}</td>
-                <td>{{ r.origin }} → {{ r.destination }}</td>
-                <td>{{ r.departureTime }} - {{ r.arrivalTime }}</td>
-                <td>{{ r.fareFamily }}</td>
-                <td>₹{{ r.basePrice | number }}</td>
-                <td>{{ r.availableSeats }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
+        <div class="hero-meta">
+          <span>{{ auth.user()?.fullName }}</span>
+          <small>{{ auth.user()?.email }}</small>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi"><span>Published routes</span><strong>{{ routes.length }}</strong></div>
+        <div class="kpi"><span>Open seats</span><strong>{{ totalSeats | number }}</strong></div>
+        <div class="kpi"><span>Avg base fare</span><strong>₹{{ avgPrice | number:'1.0-0' }}</strong></div>
+        <div class="kpi"><span>Markets</span><strong>{{ markets }}</strong></div>
+      </div>
+
+      <div class="toolbar card">
+        <p-iconfield>
+          <p-inputicon styleClass="pi pi-search" />
+          <input pInputText [(ngModel)]="filter" placeholder="Filter flight / OD…" (input)="applyFilter()" />
+        </p-iconfield>
+        <div class="toolbar-actions">
+          <p-button label="Refresh" icon="pi pi-refresh" [outlined]="true" (onClick)="load()"></p-button>
+          <p-button label="Add route" icon="pi pi-plus" (onClick)="showDialog = true"></p-button>
+        </div>
+      </div>
+
+      @if (msg) {
+        <p-message [severity]="msgOk ? 'success' : 'error'" [text]="msg" styleClass="w-full mb"></p-message>
       }
+
+      <p-card styleClass="table-card">
+        <p-table
+          [value]="filtered"
+          [paginator]="true"
+          [rows]="10"
+          [rowsPerPageOptions]="[10,25,50]"
+          [loading]="loading"
+          styleClass="p-datatable-sm"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Flight</th>
+              <th>Route</th>
+              <th>Date</th>
+              <th>Schedule</th>
+              <th>Cabin</th>
+              <th>Price</th>
+              <th>Seats</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-r>
+            <tr>
+              <td><strong>{{ r.flightNumber }}</strong><div class="muted">{{ r.airline }}</div></td>
+              <td><span class="od">{{ r.origin }} → {{ r.destination }}</span></td>
+              <td>{{ r.travelDate }}</td>
+              <td>{{ r.departureTime }} – {{ r.arrivalTime }}</td>
+              <td><p-tag [value]="r.fareFamily" [severity]="cabinSeverity(r.fareFamily)"></p-tag></td>
+              <td>₹{{ r.basePrice | number }}</td>
+              <td>{{ r.availableSeats }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="7">No routes found. Add inventory to seed the Offer plane.</td></tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+
+      <p-dialog header="Publish route" [(visible)]="showDialog" [modal]="true" [style]="{width:'720px'}" [draggable]="false">
+        <div class="form-grid">
+          <div class="field"><label>Origin (IATA)</label><input pInputText [(ngModel)]="form.origin" maxlength="3" class="w-full" /></div>
+          <div class="field"><label>Destination (IATA)</label><input pInputText [(ngModel)]="form.destination" maxlength="3" class="w-full" /></div>
+          <div class="field"><label>Travel date</label><input pInputText type="date" [(ngModel)]="form.travelDate" class="w-full" /></div>
+          <div class="field"><label>Flight number</label><input pInputText [(ngModel)]="form.flightNumber" class="w-full" /></div>
+          <div class="field"><label>Departure (HH:MM)</label><input pInputText [(ngModel)]="form.departureTime" placeholder="08:30" class="w-full" /></div>
+          <div class="field"><label>Arrival (HH:MM)</label><input pInputText [(ngModel)]="form.arrivalTime" placeholder="11:45" class="w-full" /></div>
+          <div class="field"><label>Duration (min)</label><p-inputNumber [(ngModel)]="form.durationMinutes" [min]="30" styleClass="w-full" inputStyleClass="w-full" /></div>
+          <div class="field"><label>Base price (INR)</label><p-inputNumber [(ngModel)]="form.basePrice" [min]="1000" mode="currency" currency="INR" locale="en-IN" styleClass="w-full" inputStyleClass="w-full" /></div>
+          <div class="field">
+            <label>Fare family</label>
+            <p-select [options]="fareOptions" [(ngModel)]="form.fareFamily" styleClass="w-full"></p-select>
+          </div>
+          <div class="field"><label>Available seats</label><p-inputNumber [(ngModel)]="form.availableSeats" [min]="1" styleClass="w-full" inputStyleClass="w-full" /></div>
+        </div>
+        <ng-template pTemplate="footer">
+          <p-button label="Cancel" [text]="true" (onClick)="showDialog = false"></p-button>
+          <p-button label="Publish route" icon="pi pi-check" [loading]="saving" (onClick)="addRoute()"></p-button>
+        </ng-template>
+      </p-dialog>
     </div>
   `,
   styles: [`
-    h2 { margin-bottom: 1rem; color: var(--navy); }
-    .admin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; align-items: end; }
-    @media(max-width:768px) { .admin-grid { grid-template-columns: 1fr; } }
+    .admin-page { display:grid; gap:1.1rem; }
+    .hero { display:flex; justify-content:space-between; gap:1rem; align-items:flex-start;
+      background: linear-gradient(120deg, #0b1c2f 0%, #143552 55%, #0d3d3a 100%);
+      color:#fff; border-radius:18px; padding:1.4rem 1.5rem; }
+    .hero h1 { margin:.45rem 0 .35rem; font-size:1.7rem; }
+    .hero p { margin:0; opacity:.78; max-width:540px; }
+    .hero-meta { text-align:right; display:grid; gap:.15rem; }
+    .hero-meta span { font-weight:700; }
+    .hero-meta small { opacity:.7; }
+    .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:.85rem; }
+    .kpi { background:#fff; border:1px solid var(--gray-300); border-radius:14px; padding:1rem 1.1rem; }
+    .kpi span { display:block; font-size:.75rem; color:#667; margin-bottom:.25rem; }
+    .kpi strong { font-size:1.35rem; color:var(--navy); }
+    .toolbar { display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap; }
+    .toolbar-actions { display:flex; gap:.55rem; flex-wrap:wrap; }
+    .mb { margin-bottom:.25rem; }
+    .w-full { width:100%; }
+    .muted { color:#7a8796; font-size:.75rem; }
+    .od { font-weight:700; letter-spacing:.02em; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .field label { display:block; font-size:.78rem; font-weight:650; margin-bottom:.35rem; color:#5b6b7c; }
+    :host ::ng-deep .table-card { overflow:hidden; }
+    @media (max-width:900px) {
+      .kpi-row, .form-grid { grid-template-columns:1fr 1fr; }
+      .hero { flex-direction:column; }
+      .hero-meta { text-align:left; }
+    }
+    @media (max-width:600px) {
+      .kpi-row, .form-grid { grid-template-columns:1fr; }
+    }
   `]
 })
 export class AdminComponent implements OnInit {
-  routes: Offer[] = []; msg = '';
-  form = { origin: '', destination: '', travelDate: '', airline: 'AirBook', flightNumber: '', departureTime: '', arrivalTime: '', durationMinutes: 180, basePrice: 20000, fareFamily: 'ECONOMY', availableSeats: 150 };
+  routes: Offer[] = [];
+  filtered: Offer[] = [];
+  filter = '';
+  loading = false;
+  saving = false;
+  showDialog = false;
+  msg = '';
+  msgOk = true;
+  fareOptions = ['ECONOMY', 'BUSINESS', 'PREMIUM'];
+  form = {
+    origin: 'COK', destination: 'DXB', travelDate: '', airline: 'AirBook',
+    flightNumber: 'AB101', departureTime: '08:30', arrivalTime: '11:45',
+    durationMinutes: 195, basePrice: 24500, fareFamily: 'ECONOMY', availableSeats: 160
+  };
 
   constructor(private api: ApiService, public auth: AuthService) {}
 
-  ngOnInit() { this.load(); }
+  get totalSeats() { return this.routes.reduce((s, r) => s + (r.availableSeats || 0), 0); }
+  get avgPrice() {
+    if (!this.routes.length) return 0;
+    return this.routes.reduce((s, r) => s + (r.basePrice || 0), 0) / this.routes.length;
+  }
+  get markets() {
+    return new Set(this.routes.map(r => `${r.origin}-${r.destination}`)).size;
+  }
+
+  ngOnInit() {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    this.form.travelDate = d.toISOString().slice(0, 10);
+    this.load();
+  }
+
+  cabinSeverity(f: string): 'success' | 'info' | 'warn' | 'secondary' {
+    if (f === 'BUSINESS') return 'info';
+    if (f === 'PREMIUM') return 'warn';
+    return 'success';
+  }
 
   load() {
-    this.api.getRoutes().subscribe(r => this.routes = r);
+    this.loading = true;
+    this.api.getRoutes().subscribe({
+      next: r => { this.routes = r; this.applyFilter(); this.loading = false; },
+      error: () => { this.msg = 'Failed to load catalog (ADMIN only)'; this.msgOk = false; this.loading = false; }
+    });
+  }
+
+  applyFilter() {
+    const q = this.filter.trim().toUpperCase();
+    this.filtered = !q ? [...this.routes] : this.routes.filter(r =>
+      r.flightNumber?.toUpperCase().includes(q) ||
+      r.origin?.toUpperCase().includes(q) ||
+      r.destination?.toUpperCase().includes(q) ||
+      `${r.origin}${r.destination}`.includes(q)
+    );
   }
 
   addRoute() {
+    this.saving = true; this.msg = '';
     this.api.createRoute(this.form).subscribe({
-      next: () => { this.msg = 'Route added successfully'; this.load(); },
-      error: e => this.msg = e.error?.message || 'Failed'
+      next: () => {
+        this.msg = 'Route published to Offer catalog';
+        this.msgOk = true;
+        this.saving = false;
+        this.showDialog = false;
+        this.load();
+      },
+      error: e => {
+        this.msg = e.error?.message || 'Failed to publish route';
+        this.msgOk = false;
+        this.saving = false;
+      }
     });
   }
 }

@@ -16,7 +16,7 @@ Enterprise airline retail platform modeled on IBS Software **Offer → Order →
 ```
 IBS-AirBook/
 ├── backend/src/main/java/com/ibs/airbook/
-│   ├── auth/           # Login, JWT, RBAC (ADMIN / CUSTOMER)
+│   ├── auth/           # Login, JWT, RBAC (ADMIN / ANALYST / CUSTOMER)
 │   ├── offer/          # Dynamic flight offer search & inventory
 │   ├── order/          # Create booking, list trips, check-in gate
 │   ├── settle/         # Payment settlement (mock PSP)
@@ -109,23 +109,26 @@ UI search(OD, date)
 ## Security
 
 - JWT bearer auth  
-- Roles: `CUSTOMER`, `ADMIN`  
+- Roles: `CUSTOMER`, `ANALYST`, `ADMIN` (enterprise RBAC)  
 - Public: offers search, ancillaries list, market/tracker  
-- Authenticated: orders, settle, check-in, AI, analytics  
-- Admin: catalog CMS  
+- Authenticated: orders, settle, check-in, ancillary recommendations  
+- Analyst + Admin: analytics dashboard, AI insights / ask / demand forecast  
+- Admin only: catalog CMS (`/api/catalog/routes`)  
+- Frontend: `authGuard` + `roleGuard` — `/dashboard` (customer), `/bi` (analyst/admin), `/admin` (admin)
 
 ## UI modules (PrimeNG)
 
-| Route | Purpose |
-|-------|---------|
-| `/` | Hero + quick search |
-| `/search` | Offers + booking wizard |
-| `/tracker` | Live OpenSky map tracker |
-| `/bookings` | My trips |
-| `/checkin` | Check-in + boarding pass |
-| `/bi` | AI BI command center |
-| `/admin` | Route CMS |
-| `/login` | JWT login |
+| Route | Purpose | Roles |
+|-------|---------|-------|
+| `/` | Hero + quick search | Public |
+| `/search` | Offers + booking wizard | Public / auth to book |
+| `/tracker` | Live OpenSky map tracker | Public |
+| `/dashboard` | Customer portal | CUSTOMER |
+| `/bookings` | My trips | CUSTOMER |
+| `/checkin` | Check-in + boarding pass | CUSTOMER |
+| `/bi` | AI BI command center | ANALYST, ADMIN |
+| `/admin` | Route CMS | ADMIN |
+| `/login` | JWT login (role-based redirect) | Public |
 
 ## Deployment
 

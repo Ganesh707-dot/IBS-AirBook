@@ -3,6 +3,7 @@ package com.ibs.airbook.ai;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,16 +19,19 @@ public class AiController {
     public record AskRequest(@NotBlank String question) {}
 
     @GetMapping("/insights")
+    @PreAuthorize("hasAnyRole('ADMIN','ANALYST')")
     public ResponseEntity<List<AiBiService.AiInsight>> insights() {
         return ResponseEntity.ok(aiBiService.generateInsights());
     }
 
     @PostMapping("/ask")
+    @PreAuthorize("hasAnyRole('ADMIN','ANALYST')")
     public ResponseEntity<AiBiService.AiChatResponse> ask(@RequestBody AskRequest request) {
         return ResponseEntity.ok(aiBiService.ask(request.question()));
     }
 
     @GetMapping("/ancillary-recommendations")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<AiBiService.AncillaryRecommendation>> ancillaries(
             @RequestParam(defaultValue = "COK") String origin,
             @RequestParam(defaultValue = "DXB") String destination,
@@ -36,6 +40,7 @@ public class AiController {
     }
 
     @GetMapping("/demand-forecast")
+    @PreAuthorize("hasAnyRole('ADMIN','ANALYST')")
     public ResponseEntity<Map<String, Object>> forecast(
             @RequestParam String origin,
             @RequestParam String destination) {

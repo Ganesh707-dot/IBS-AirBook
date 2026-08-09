@@ -48,25 +48,35 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void seedUsers() {
-        if (userRepository.count() > 0) return;
-        userRepository.save(User.builder()
-                .email("admin@airbook.com")
-                .password(passwordEncoder.encode("admin123"))
-                .fullName("Retail Ops Admin")
-                .role(User.Role.ADMIN)
-                .build());
-        userRepository.save(User.builder()
-                .email("customer@airbook.com")
-                .password(passwordEncoder.encode("customer123"))
-                .fullName("Ganesh V")
-                .role(User.Role.CUSTOMER)
-                .build());
-        userRepository.save(User.builder()
-                .email("analyst@airbook.com")
-                .password(passwordEncoder.encode("analyst123"))
-                .fullName("BI Analyst")
-                .role(User.Role.ADMIN)
-                .build());
+        if (userRepository.count() == 0) {
+            userRepository.save(User.builder()
+                    .email("admin@airbook.com")
+                    .password(passwordEncoder.encode("admin123"))
+                    .fullName("Retail Ops Admin")
+                    .role(User.Role.ADMIN)
+                    .build());
+            userRepository.save(User.builder()
+                    .email("customer@airbook.com")
+                    .password(passwordEncoder.encode("customer123"))
+                    .fullName("Ganesh V")
+                    .role(User.Role.CUSTOMER)
+                    .build());
+            userRepository.save(User.builder()
+                    .email("analyst@airbook.com")
+                    .password(passwordEncoder.encode("analyst123"))
+                    .fullName("BI Analyst")
+                    .role(User.Role.ANALYST)
+                    .build());
+            return;
+        }
+        // Migrate legacy analyst accounts that were incorrectly seeded as ADMIN
+        userRepository.findByEmail("analyst@airbook.com").ifPresent(u -> {
+            if (u.getRole() != User.Role.ANALYST) {
+                u.setRole(User.Role.ANALYST);
+                userRepository.save(u);
+                log.info("Migrated analyst@airbook.com to ANALYST role");
+            }
+        });
     }
 
     private void seedAirports() {
