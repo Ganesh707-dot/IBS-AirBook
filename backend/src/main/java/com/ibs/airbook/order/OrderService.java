@@ -52,7 +52,7 @@ public class OrderService {
                 .passengers(request.passengers())
                 .totalAmount(total)
                 .ancillaryCodes(String.join(",", codes))
-                .status(Order.OrderStatus.CONFIRMED)
+                .status(Order.OrderStatus.PENDING_PAYMENT)
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -74,6 +74,9 @@ public class OrderService {
         }
         if (order.getStatus() == Order.OrderStatus.CHECKED_IN) {
             throw new IllegalArgumentException("Already checked in");
+        }
+        if (order.getStatus() != Order.OrderStatus.SETTLED) {
+            throw new IllegalArgumentException("Payment must be settled before check-in");
         }
 
         order.setStatus(Order.OrderStatus.CHECKED_IN);

@@ -25,3 +25,6 @@ Thumbs.db
 # Env
 .env
 *.local
+
+# Built SPA copied into backend for local all-in-one runs
+backend/src/main/resources/static/

@@ -1,53 +1,103 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { CardModule } from 'primeng/card';
+import { ButtonModule } from 'primeng/button';
+import { SelectModule } from 'primeng/select';
+import { DatePickerModule } from 'primeng/datepicker';
+import { TagModule } from 'primeng/tag';
+import { ApiService, Airport } from '../../core/services/api.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, FormsModule, CommonModule],
+  imports: [CommonModule, FormsModule, CardModule, ButtonModule, SelectModule, DatePickerModule, TagModule],
   template: `
     <section class="hero">
-      <div class="container">
-        <p class="tag">Inspired by IBS iRetail & iFly</p>
-        <h1>Where retail meets<br><span>airline excellence</span></h1>
-        <p class="subtitle">Offer–Order–Settle–Deliver platform for modern airline passenger services</p>
-        <form class="search-card card" (ngSubmit)="goSearch()">
-          <div class="search-grid">
-            <div class="form-group"><label>From</label><input [(ngModel)]="origin" name="origin" placeholder="COK" maxlength="3"></div>
-            <div class="form-group"><label>To</label><input [(ngModel)]="destination" name="dest" placeholder="DXB" maxlength="3"></div>
-            <div class="form-group"><label>Passengers</label><select [(ngModel)]="passengers" name="pax"><option *ngFor="let n of [1,2,3,4,5,6]" [value]="n">{{n}}</option></select></div>
-            <button type="submit" class="btn btn-primary search-btn">Search Flights</button>
+      <div class="container hero-grid">
+        <div>
+          <p-tag value="Airline Retail Platform" severity="success"></p-tag>
+          <h1>AirBook</h1>
+          <p class="lead">Offer → Order → Settle → Deliver for modern passenger retail.</p>
+          <p>Dynamic pricing, AI BI, and live flight tracking — built for airline retail engineering interviews.</p>
+          <div class="cta">
+            <p-button label="Search flights" icon="pi pi-search" (onClick)="goSearch()"></p-button>
+            <p-button label="Live tracker" icon="pi pi-map" severity="secondary" [outlined]="true" (onClick)="goTracker()"></p-button>
           </div>
-        </form>
+        </div>
+        <p-card styleClass="search-panel">
+          <h3>Start booking</h3>
+          <div class="field"><label>From</label>
+            <p-select [options]="airportOptions" [(ngModel)]="origin" optionLabel="label" optionValue="value" [filter]="true" styleClass="w-full"></p-select>
+          </div>
+          <div class="field"><label>To</label>
+            <p-select [options]="airportOptions" [(ngModel)]="destination" optionLabel="label" optionValue="value" [filter]="true" styleClass="w-full"></p-select>
+          </div>
+          <div class="field"><label>Date</label>
+            <p-datepicker [(ngModel)]="travelDateObj" dateFormat="yy-mm-dd" [minDate]="minDate" styleClass="w-full" inputStyleClass="w-full"></p-datepicker>
+          </div>
+          <p-button label="Find offers" icon="pi pi-arrow-right" iconPos="right" styleClass="w-full" (onClick)="goSearch()"></p-button>
+        </p-card>
       </div>
     </section>
-    <section class="features container">
-      <div class="feature card"><h3>Offer Management</h3><p>Search fare families, branded fares, and dynamic airline offers across channels.</p></div>
-      <div class="feature card"><h3>Order Booking</h3><p>Create passenger orders with ancillary upsell — baggage, meals, priority boarding.</p></div>
-      <div class="feature card"><h3>Web Check-in</h3><p>Self-service check-in with boarding pass generation and status tracking.</p></div>
+
+    <section class="container tiles">
+      <p-card><h3>1. Offer</h3><p>Live demand + FX-aware fares across 40 airports.</p></p-card>
+      <p-card><h3>2. Order</h3><p>PrimeNG multi-step booking with ancillaries & payment.</p></p-card>
+      <p-card><h3>3. Settle</h3><p>Payment settlement with payment ID & conversion analytics.</p></p-card>
+      <p-card><h3>4. Deliver</h3><p>Web check-in and digital boarding pass delivery.</p></p-card>
     </section>
   `,
   styles: [`
-    .hero { background: linear-gradient(135deg, var(--navy) 0%, #0d2847 100%); color: white; padding: 4rem 0 5rem; }
-    .tag { color: var(--teal); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
-    h1 { font-size: 2.75rem; line-height: 1.2; margin-bottom: 1rem; }
-    h1 span { color: var(--teal); }
-    .subtitle { opacity: 0.8; margin-bottom: 2rem; max-width: 550px; }
-    .search-card { max-width: 800px; }
-    .search-grid { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1rem; align-items: end; }
-    .search-btn { height: 42px; white-space: nowrap; }
-    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: -2rem; position: relative; z-index: 1; padding-bottom: 2rem; }
-    .feature h3 { color: var(--navy); margin-bottom: 0.5rem; }
-    .feature p { font-size: 0.9rem; color: #555; }
-    @media (max-width: 768px) { .search-grid, .features { grid-template-columns: 1fr; } h1 { font-size: 2rem; } }
+    .hero { background: radial-gradient(circle at top right, #123554, #071526 55%); color:#fff; padding: 3.5rem 0 4.5rem; }
+    .hero-grid { display:grid; grid-template-columns: 1.3fr 1fr; gap:1.5rem; align-items:center; }
+    h1 { font-size: clamp(2.4rem, 5vw, 3.4rem); line-height:1.1; margin:1rem 0 .5rem; letter-spacing:-0.02em; }
+    .lead { opacity:.95; max-width:560px; font-size:1.1rem; font-weight:600; margin-bottom:.5rem; }
+    p { opacity:.85; max-width:560px; }
+    .cta { display:flex; gap:.75rem; margin-top:1.25rem; flex-wrap:wrap; }
+    :host ::ng-deep .search-panel { background:#fff; color:#122033; border-radius:16px; }
+    .field { margin-bottom: .85rem; }
+    .field label { display:block; font-size:.8rem; font-weight:600; margin-bottom:.3rem; }
+    .tiles { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-top:-2rem; position:relative; z-index:2; }
+    .tiles h3 { margin:0 0 .4rem; color:#071526; }
+    .tiles p { margin:0; color:#556; font-size:.92rem; }
+    .w-full { width:100%; }
+    @media (max-width:900px) {
+      .hero-grid, .tiles { grid-template-columns:1fr; }
+    }
   `]
 })
-export class HomeComponent {
-  origin = 'COK'; destination = 'DXB'; passengers = 1;
+export class HomeComponent implements OnInit {
+  origin = 'COK'; destination = 'DXB';
+  travelDateObj = new Date();
+  minDate = new Date();
+  airportOptions: { label: string; value: string }[] = [];
+
+  constructor(private api: ApiService, private router: Router) {
+    const d = new Date(); d.setDate(d.getDate() + 7); this.travelDateObj = d;
+  }
+
+  ngOnInit() {
+    this.api.getAirports().subscribe(a => {
+      this.airportOptions = a.map(x => ({ label: `${x.iata} — ${x.city}`, value: x.iata }));
+    });
+  }
+
+  private dateStr() {
+    const d = this.travelDateObj;
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
 
   goSearch() {
-    window.location.href = `/search?origin=${this.origin}&destination=${this.destination}&pax=${this.passengers}`;
+    this.router.navigate(['/search'], {
+      queryParams: { origin: this.origin, destination: this.destination, date: this.dateStr() }
+    });
+  }
+
+  goTracker() {
+    this.router.navigate(['/tracker'], {
+      queryParams: { origin: this.origin, destination: this.destination }
+    });
   }
 }

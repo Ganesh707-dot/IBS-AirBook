@@ -1,87 +1,72 @@
-# IBS-AirBook
+# AirBook — Airline Retail Platform
 
-> Airline retail & passenger booking platform — inspired by [IBS Software](https://www.ibsplc.com/) iRetail / iFly passenger solutions (Offer–Order–Settle–Deliver).
+> Product name: **AirBook** · Repo: IBS-AirBook  
+> Dynamic **Offer → Order → Settle → Deliver** platform inspired by [IBS Software](https://www.ibsplc.com/) passenger retail solutions.
 
-A full-stack portfolio project demonstrating **Java Spring Boot** backend architecture and **Angular** frontend for airline retail workflows.
+Built as an interview-ready full-stack system (Java Spring Boot + Angular/PrimeNG) with **live free market APIs**, **dynamic revenue pricing**, and an **AI BI command center**.
 
-## Screenshots
+## Docs
 
-| Home & Search | Flight Offers & Booking | Admin CMS |
-|---|---|---|
-| ![Home](docs/screenshots/home-dashboard.png) | ![Booking](docs/screenshots/flight-booking.png) | ![Admin](docs/screenshots/admin-cms.png) |
+- [Technical architecture](docs/architecture.md) — modules, booking APIs, AI design  
+- [User manual](docs/user-manual.md) — how to book, tracker, AI BI demo script  
 
-## Tech Stack
+## Booking & AI (short answers)
 
-| Layer | Technology |
-|-------|------------|
-| Backend | Java 17, Spring Boot 3.2, Spring Security, JPA/Hibernate |
-| Frontend | Angular 19, TypeScript, PrimeNG, RxJS |
-| Database | PostgreSQL 16 (H2 for local dev) |
-| API Docs | OpenAPI / Swagger UI |
-| DevOps | Docker, Docker Compose, Jenkinsfile |
-| Testing | JUnit 5, Mockito |
+**Booking works?** Yes — login as customer → Flights → Book wizard → Pay & confirm → My Trips / Check-in (real Order → Settle → Deliver APIs).
+
+**AI is used for?** Retail BI & personalization — insights, natural-language analyst Q&A, ancillary upsell ranking during booking, demand forecast. Not for inventing live aircraft positions (that’s OpenSky).
+
+## Live demo credentials
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin / BI | `admin@airbook.com` | `admin123` |
+| Customer | `customer@airbook.com` | `customer123` |
+| Analyst | `analyst@airbook.com` | `analyst123` |
+
+## Why this is enterprise-grade
+
+| Capability | Implementation |
+|------------|----------------|
+| Dynamic offers | Generated per OD + travel date (haversine schedules, inventory, fare families) |
+| Live demand | [OpenSky Network](https://opensky-network.org/) ADS-B traffic density (free, no key) |
+| FX-aware pricing | [Frankfurter](https://www.frankfurter.app/) ECB EUR→INR rates (free, no key) |
+| RM pricing | Demand × DOW × lead-time × fare-family multipliers |
+| OOSD lifecycle | `PENDING_PAYMENT` → `SETTLED` → `CHECKED_IN` + boarding pass deliver |
+| AI BI | Local retail analyst + optional [Groq](https://console.groq.com/) LLM (`GROQ_API_KEY`) |
+| Analytics | KPI board, revenue trend, OOSD funnel, demand forecast |
+| Security | JWT + RBAC (ADMIN / CUSTOMER) |
+| API docs | OpenAPI / Swagger UI |
 
 ## Architecture
 
-Modular monolith designed for microservices extraction — mirrors IBS APS squad patterns.
-
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                 Angular SPA (airbook-ui)                      │
-│   Search · Book · Ancillaries · Check-in · Admin CMS         │
-└────────────────────────────┬─────────────────────────────────┘
-                             │ REST + JWT
-┌────────────────────────────▼─────────────────────────────────┐
-│              Spring Boot API (Modular Monolith)               │
-│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐            │
-│  │  Auth   │ │  Offer  │ │  Order  │ │ Catalog │            │
-│  │ Module  │ │ Module  │ │ Module  │ │ Module  │            │
-│  └─────────┘ └─────────┘ └─────────┘ └─────────┘            │
-└────────────────────────────┬─────────────────────────────────┘
-                             │
-                    PostgreSQL / H2
+Angular SPA ──REST/JWT──► Spring Boot Modular Monolith
+                          ├ auth
+                          ├ offer (+ dynamic generator)
+                          ├ order / settle / deliver
+                          ├ catalog (airports, ancillaries, CMS)
+                          ├ pricing (RM engine)
+                          ├ analytics (BI KPIs)
+                          ├ ai (insights, NL ask, recommendations)
+                          ├ market (OpenSky + Frankfurter + airports)
+                          └ integration/*
 ```
 
-### Domain Modules (OOSD-inspired)
+## Quick start
 
-- **Offer** — Flight search, fare families, branded fares, ancillary catalog
-- **Order** — Booking creation, passenger details, payment summary
-- **Catalog** — Admin route & fare management (CMS)
-- **Auth** — JWT authentication, RBAC (ADMIN / CUSTOMER)
-
-## Quick Start
-
-### Prerequisites
-
-- Java 17+
-- Maven 3.9+
-- Docker (optional, for PostgreSQL + frontend build)
-
-### Run Backend
+### Backend
 
 ```bash
 cd backend
 mvn spring-boot:run
 ```
 
-API: `http://localhost:8080`  
-Swagger: `http://localhost:8080/swagger-ui.html`
+- API: `http://localhost:8080`
+- Swagger: `http://localhost:8080/swagger-ui.html`
+- Health: `http://localhost:8080/api/health`
 
-**Demo credentials:**
-- Admin: `admin@airbook.com` / `admin123`
-- Customer: `customer@airbook.com` / `customer123`
-
-### Run with Docker Compose
-
-```bash
-docker compose up --build
-```
-
-- Backend: `http://localhost:8080`
-- Frontend: `http://localhost:4200`
-- PostgreSQL: `localhost:5432`
-
-### Run Frontend (requires Node 20+)
+### Frontend
 
 ```bash
 cd frontend/airbook-ui
@@ -89,47 +74,50 @@ npm install
 npm start
 ```
 
-## API Endpoints
+UI: `http://localhost:4200`
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/login` | JWT login |
-| GET | `/api/offers/search` | Search flight offers |
-| GET | `/api/offers/{id}` | Offer details |
-| POST | `/api/orders` | Create booking |
-| GET | `/api/orders` | List user bookings |
+### Docker (all-in-one production image)
+
+```bash
+docker build -t ibs-airbook .
+docker run -p 8080:8080 -e GROQ_API_KEY=optional_free_key ibs-airbook
+```
+
+Open `http://localhost:8080`
+
+### Optional AI (Groq free tier)
+
+```bash
+export GROQ_API_KEY=gsk_xxx
+```
+
+Without a key, BI still works using the on-box retail analyst (`LOCAL_RETAIL_ANALYST` mode).
+
+## Key API surface
+
+| Method | Endpoint | Notes |
+|--------|----------|-------|
+| GET | `/api/offers/search?origin&destination&travelDate` | Dynamic offers |
+| POST | `/api/orders` | Create order |
+| POST | `/api/settle` | Settle payment |
 | POST | `/api/checkin/{ref}` | Web check-in |
-| GET | `/api/catalog/routes` | Admin: list routes |
-| POST | `/api/catalog/routes` | Admin: create route |
-| GET | `/api/catalog/ancillaries` | List ancillaries |
+| GET | `/api/deliver/boarding-pass/{ref}` | Boarding pass |
+| GET | `/api/market/pulse` | Live demand + FX |
+| GET | `/api/market/airports` | 40 airport master |
+| GET | `/api/analytics/dashboard` | BI payload |
+| GET | `/api/ai/insights` | AI insights |
+| POST | `/api/ai/ask` | NL BI Q&A |
+| GET | `/api/ai/demand-forecast` | 7-day demand |
+| GET | `/api/ai/ancillary-recommendations` | Ranked upsell |
 
-## Project Structure
+## Interview talking points (15 LPA)
 
-```
-iRetail-AirBook/
-├── backend/                 # Spring Boot API
-│   └── src/main/java/com/ibs/airbook/
-│       ├── auth/            # JWT + security
-│       ├── offer/           # Flight search & offers
-│       ├── order/           # Bookings & check-in
-│       └── catalog/         # Admin CMS
-├── frontend/
-│   └── airbook-ui/          # Angular 19 SPA
-│       └── src/app/
-│           ├── core/        # Auth, API, guards
-│           └── features/    # Home, Search, Bookings, Check-in, Admin
-├── docs/screenshots/        # UI mockups
-├── docker-compose.yml
-├── Jenkinsfile
-└── README.md
-```
-
-## CI/CD
-
-Jenkins pipeline stages: **Build → Test → Docker Image → Deploy**
+1. **Modular monolith** ready for microservice extraction along OOSD boundaries  
+2. **External system integration** with resilience (cache + fallbacks)  
+3. **Revenue management** pricing as a first-class domain service  
+4. **AI for BI** with provider pluggability (local analyst ↔ Groq LLM)  
+5. **Observable retail funnel** — Offer→Order→Settle→Deliver metrics  
 
 ## Author
 
 **Ganesh V** — [GitHub](https://github.com/Ganesh707-dot) · [LinkedIn](https://linkedin.com/in/ganesh-v-2564bb21a)
-
-Built as a portfolio project targeting airline retail / PSS domain (IBS Software APS).

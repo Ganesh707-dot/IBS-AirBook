@@ -14,8 +14,8 @@
     <groupId>com.ibs</groupId>
     <artifactId>airbook-api</artifactId>
     <version>1.0.0</version>
-    <name>iRetail AirBook API</name>
-    <description>Airline retail booking platform - Spring Boot backend</description>
+    <name>AirBook API</name>
+    <description>Airline retail booking platform - Offer Order Settle Deliver</description>
 
     <properties>
         <java.version>17</java.version>
@@ -26,6 +26,14 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

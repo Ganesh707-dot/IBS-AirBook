@@ -3,6 +3,7 @@ package com.ibs.airbook.config;
 import com.ibs.airbook.auth.CustomUserDetailsService;
 import com.ibs.airbook.auth.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -34,6 +35,9 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final CustomUserDetailsService userDetailsService;
 
+    @Value("${airbook.cors.allowed-origins:http://localhost:4200,http://localhost:8080}")
+    private String allowedOrigins;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -43,9 +47,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/health", "/swagger-ui/**", "/api-docs/**",
                                 "/swagger-ui.html", "/h2-console/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/offers/**", "/api/catalog/ancillaries").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/offers/**", "/api/catalog/ancillaries",
+                                "/api/market/**").permitAll()
+                        .requestMatchers("/api/analytics/**", "/api/ai/**").authenticated()
                         .requestMatchers("/api/catalog/**").hasRole("ADMIN")
-                        .anyRequest().authenticated())
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().permitAll())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .headers(h -> h.frameOptions(f -> f.sameOrigin()));
@@ -56,7 +63,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:8080"));
+        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

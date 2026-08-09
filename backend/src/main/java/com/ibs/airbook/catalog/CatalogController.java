@@ -3,10 +3,12 @@ package com.ibs.airbook.catalog;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -44,15 +46,16 @@ public class CatalogController {
     }
 
     public record RouteDto(Long id, String origin, String destination, String airline,
-                           String flightNumber, String departureTime, String arrivalTime,
-                           Integer durationMinutes, BigDecimal basePrice, String fareFamily,
-                           Integer availableSeats) {}
+                           String flightNumber, LocalDate travelDate, String departureTime, String arrivalTime,
+                           Integer durationMinutes, BigDecimal basePrice, String currency, String fareFamily,
+                           Integer availableSeats, Integer demandScore, String marketStatus) {}
 
     public record CreateRouteRequest(
             @NotBlank @Size(min = 3, max = 3) String origin,
             @NotBlank @Size(min = 3, max = 3) String destination,
             @NotBlank String airline,
             @NotBlank String flightNumber,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate travelDate,
             @NotBlank String departureTime,
             @NotBlank String arrivalTime,
             @NotNull @Min(1) Integer durationMinutes,

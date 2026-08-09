@@ -4,9 +4,13 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "routes")
+@Table(name = "routes", indexes = {
+        @Index(name = "idx_od_date", columnList = "origin,destination,travelDate")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -31,6 +35,9 @@ public class Route {
     private String flightNumber;
 
     @Column(nullable = false)
+    private LocalDate travelDate;
+
+    @Column(nullable = false)
     private String departureTime;
 
     @Column(nullable = false)
@@ -43,8 +50,18 @@ public class Route {
     private BigDecimal basePrice;
 
     @Column(nullable = false)
+    private String currency;
+
+    @Column(nullable = false)
     private String fareFamily;
 
     @Column(nullable = false)
     private Integer availableSeats;
+
+    @Column(nullable = false)
+    private Integer demandScore;
+
+    private String marketStatus;
+    private BigDecimal eurInrRate;
+    private LocalDateTime generatedAt;
 }

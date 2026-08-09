@@ -18,10 +18,22 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": ["src/assets"],
-            "styles": ["src/styles.scss"]
+            "styles": [
+              "node_modules/primeicons/primeicons.css",
+              "node_modules/leaflet/dist/leaflet.css",
+              "src/styles.scss"
+            ]
           },
           "configurations": {
-            "production": { "outputHashing": "all" },
+            "production": {
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ]
+            },
             "development": { "optimization": false, "sourceMap": true }
           },
           "defaultConfiguration": "production"

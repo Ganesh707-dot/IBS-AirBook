@@ -47,12 +47,16 @@ public class Order {
     @Column(nullable = false)
     private OrderStatus status;
 
+    private String paymentId;
+    private String paymentMethod;
+    private LocalDateTime settledAt;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
     private LocalDateTime checkedInAt;
 
     public enum OrderStatus {
-        CONFIRMED, CHECKED_IN, CANCELLED
+        PENDING_PAYMENT, SETTLED, CHECKED_IN, CANCELLED
     }
 }

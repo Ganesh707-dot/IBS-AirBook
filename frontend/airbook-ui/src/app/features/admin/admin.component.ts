@@ -11,13 +11,14 @@ import { AuthService } from '../../core/services/auth.service';
   template: `
     <div class="container">
       <h2>Admin CMS — Route Catalog</h2>
-      @if (!auth.isAdmin()) { <div class="alert-error">Admin access only. Login as admin@airbook.com</div> }
+      @if (!auth.isAdmin()) { <div class="alert-error">Admin access only. Login as admin&#64;airbook.com</div> }
       @else {
         <div class="card" style="margin-bottom:1.5rem">
           <h3>Add Route</h3>
           <div class="admin-grid">
             <div class="form-group"><label>Origin</label><input [(ngModel)]="form.origin" maxlength="3"></div>
             <div class="form-group"><label>Destination</label><input [(ngModel)]="form.destination" maxlength="3"></div>
+            <div class="form-group"><label>Travel date</label><input type="date" [(ngModel)]="form.travelDate"></div>
             <div class="form-group"><label>Flight No</label><input [(ngModel)]="form.flightNumber"></div>
             <div class="form-group"><label>Departure</label><input [(ngModel)]="form.departureTime" placeholder="HH:MM"></div>
             <div class="form-group"><label>Arrival</label><input [(ngModel)]="form.arrivalTime" placeholder="HH:MM"></div>
@@ -55,7 +56,7 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class AdminComponent implements OnInit {
   routes: Offer[] = []; msg = '';
-  form = { origin: '', destination: '', airline: 'AirBook', flightNumber: '', departureTime: '', arrivalTime: '', durationMinutes: 180, basePrice: 20000, fareFamily: 'ECONOMY', availableSeats: 150 };
+  form = { origin: '', destination: '', travelDate: '', airline: 'AirBook', flightNumber: '', departureTime: '', arrivalTime: '', durationMinutes: 180, basePrice: 20000, fareFamily: 'ECONOMY', availableSeats: 150 };
 
   constructor(private api: ApiService, public auth: AuthService) {}
 

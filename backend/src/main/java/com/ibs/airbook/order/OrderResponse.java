@@ -13,7 +13,10 @@ public record OrderResponse(
         BigDecimal totalAmount,
         String ancillaryCodes,
         String status,
+        String paymentId,
+        String paymentMethod,
         LocalDateTime createdAt,
+        LocalDateTime settledAt,
         LocalDateTime checkedInAt
 ) {
     static OrderResponse from(Order order) {
@@ -21,7 +24,8 @@ public record OrderResponse(
                 order.getId(), order.getBookingReference(), order.getRouteId(),
                 order.getPassengerName(), order.getPassengerEmail(), order.getPassengers(),
                 order.getTotalAmount(), order.getAncillaryCodes(),
-                order.getStatus().name(), order.getCreatedAt(), order.getCheckedInAt()
+                order.getStatus().name(), order.getPaymentId(), order.getPaymentMethod(),
+                order.getCreatedAt(), order.getSettledAt(), order.getCheckedInAt()
         );
     }
 }
