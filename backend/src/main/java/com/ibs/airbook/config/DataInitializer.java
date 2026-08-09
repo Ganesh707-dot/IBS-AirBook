@@ -48,35 +48,31 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void seedUsers() {
-        if (userRepository.count() == 0) {
-            userRepository.save(User.builder()
-                    .email("admin@airbook.com")
-                    .password(passwordEncoder.encode("admin123"))
-                    .fullName("Retail Ops Admin")
-                    .role(User.Role.ADMIN)
-                    .build());
-            userRepository.save(User.builder()
-                    .email("customer@airbook.com")
-                    .password(passwordEncoder.encode("customer123"))
-                    .fullName("Ganesh V")
-                    .role(User.Role.CUSTOMER)
-                    .build());
-            userRepository.save(User.builder()
-                    .email("analyst@airbook.com")
-                    .password(passwordEncoder.encode("analyst123"))
-                    .fullName("BI Analyst")
-                    .role(User.Role.ANALYST)
-                    .build());
-            return;
-        }
-        // Migrate legacy analyst accounts that were incorrectly seeded as ADMIN
-        userRepository.findByEmail("analyst@airbook.com").ifPresent(u -> {
-            if (u.getRole() != User.Role.ANALYST) {
-                u.setRole(User.Role.ANALYST);
-                userRepository.save(u);
-                log.info("Migrated analyst@airbook.com to ANALYST role");
+        // Always upsert demo personas so ANALYST is never stuck as ADMIN in durable DBs
+        upsertUser("admin@airbook.com", "admin123", "Platform Ops Admin", User.Role.ADMIN);
+        upsertUser("customer@airbook.com", "customer123", "Ganesh V", User.Role.CUSTOMER);
+        upsertUser("analyst@airbook.com", "analyst123", "Naviq BI Analyst", User.Role.ANALYST);
+    }
+
+    private void upsertUser(String email, String rawPassword, String fullName, User.Role role) {
+        userRepository.findByEmail(email).ifPresentOrElse(u -> {
+            boolean dirty = false;
+            if (u.getRole() != role) { u.setRole(role); dirty = true; }
+            if (!fullName.equals(u.getFullName())) { u.setFullName(fullName); dirty = true; }
+            if (!passwordEncoder.matches(rawPassword, u.getPassword())) {
+                u.setPassword(passwordEncoder.encode(rawPassword));
+                dirty = true;
             }
-        });
+            if (dirty) {
+                userRepository.save(u);
+                log.info("Synced demo user {} → {}", email, role);
+            }
+        }, () -> userRepository.save(User.builder()
+                .email(email)
+                .password(passwordEncoder.encode(rawPassword))
+                .fullName(fullName)
+                .role(role)
+                .build()));
     }
 
     private void seedAirports() {

@@ -37,6 +37,7 @@ Built as an interview-ready full-stack system (Java Spring Boot + Angular/PrimeN
 | AI BI | Local retail analyst + optional [Groq](https://console.groq.com/) LLM (`GROQ_API_KEY`) |
 | Analytics | KPI board, revenue trend, OOSD funnel, demand forecast |
 | Security | JWT + enterprise RBAC (ADMIN / ANALYST / CUSTOMER) |
+| Domains | iFly passenger · iStay hotels · iTravel cruise · iCargo · iLoyal · Naviq AI concierge |
 | API docs | OpenAPI / Swagger UI |
 
 ## Architecture

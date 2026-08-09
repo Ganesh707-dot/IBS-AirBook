@@ -51,10 +51,13 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/health", "/swagger-ui/**", "/api-docs/**",
+                        .requestMatchers("/api/auth/login", "/api/health", "/swagger-ui/**", "/api-docs/**",
                                 "/swagger-ui.html", "/h2-console/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/offers/**", "/api/catalog/ancillaries",
-                                "/api/market/**").permitAll()
+                                "/api/market/**", "/api/platform/solutions", "/api/platform/stays",
+                                "/api/platform/cruises", "/api/platform/cargo/**",
+                                "/api/platform/loyalty/**").permitAll()
+                        .requestMatchers("/api/auth/me").authenticated()
                         // Customer booking personalization (upsell ranking)
                         .requestMatchers(HttpMethod.GET, "/api/ai/ancillary-recommendations")
                                 .authenticated()
@@ -63,7 +66,7 @@ public class SecurityConfig {
                                 .hasAnyRole("ADMIN", "ANALYST")
                         // Catalog CMS — Admin only
                         .requestMatchers("/api/catalog/**").hasRole("ADMIN")
-                        // Retail journey — any authenticated role
+                        // Retail / concierge — any authenticated role
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll())
                 .authenticationProvider(authenticationProvider())

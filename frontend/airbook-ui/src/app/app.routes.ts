@@ -5,6 +5,11 @@ export const routes: Routes = [
   { path: '', loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent) },
   { path: 'search', loadComponent: () => import('./features/search/search.component').then(m => m.SearchComponent) },
   { path: 'login', loadComponent: () => import('./features/login/login.component').then(m => m.LoginComponent) },
+  { path: 'stays', loadComponent: () => import('./features/stays/stays.component').then(m => m.StaysComponent) },
+  { path: 'cruise', loadComponent: () => import('./features/cruise/cruise.component').then(m => m.CruiseComponent) },
+  { path: 'cargo', loadComponent: () => import('./features/cargo/cargo.component').then(m => m.CargoComponent) },
+  { path: 'loyalty', loadComponent: () => import('./features/loyalty/loyalty.component').then(m => m.LoyaltyComponent) },
+  { path: 'concierge', loadComponent: () => import('./features/concierge/concierge.component').then(m => m.ConciergeComponent) },
   {
     path: 'dashboard',
     canActivate: [authGuard, customerGuard],

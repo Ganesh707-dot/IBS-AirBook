@@ -24,9 +24,9 @@ Chart.register(...registerables);
     <div class="container bi-page">
       <div class="hero">
         <div>
-          <p-tag [value]="auth.isAdmin() ? 'ADMIN · ANALYTICS' : 'ANALYST WORKSPACE'" severity="info"></p-tag>
-          <h1>AI Retail BI Command Center</h1>
-          <p>Live OOSD KPIs, demand signals, FX, and natural-language retail analyst — restricted to ADMIN & ANALYST.</p>
+          <p-tag [value]="auth.isAnalyst() && !auth.isAdmin() ? 'ANALYST WORKSPACE · NAVIQ BI' : (auth.isAdmin() ? 'ADMIN · ANALYTICS ACCESS' : 'INTELLIGENCE PLANE')" severity="info"></p-tag>
+          <h1>{{ auth.isAnalyst() && !auth.isAdmin() ? 'Analyst BI Command Center' : 'AI Retail BI Command Center' }}</h1>
+          <p>Live OOSD KPIs, demand signals, FX, and natural-language retail analyst — {{ auth.isAnalyst() && !auth.isAdmin() ? 'your primary Analyst workspace' : 'Admin + Analyst access' }}.</p>
         </div>
         <p-button label="Refresh" icon="pi pi-refresh" [outlined]="true" (onClick)="refresh()"></p-button>
       </div>

@@ -156,4 +156,55 @@ export class ApiService {
   getDemandForecast(origin: string, destination: string): Observable<any> {
     return this.http.get(`${this.API}/ai/demand-forecast`, { params: { origin, destination } });
   }
+
+  getSolutions(): Observable<Solution[]> {
+    return this.http.get<Solution[]>(`${this.API}/platform/solutions`);
+  }
+
+  getStays(hub?: string, tier?: string): Observable<Stay[]> {
+    let params = new HttpParams();
+    if (hub) params = params.set('hub', hub);
+    if (tier) params = params.set('tier', tier);
+    return this.http.get<Stay[]>(`${this.API}/platform/stays`, { params });
+  }
+
+  getCruises(tier?: string): Observable<Cruise[]> {
+    let params = new HttpParams();
+    if (tier) params = params.set('tier', tier);
+    return this.http.get<Cruise[]>(`${this.API}/platform/cruises`, { params });
+  }
+
+  getCargoLanes(): Observable<CargoLane[]> {
+    return this.http.get<CargoLane[]>(`${this.API}/platform/cargo/lanes`);
+  }
+
+  getLoyalty(): Observable<{ program: string; tiers: LoyaltyTier[]; partners: LoyaltyPartner[] }> {
+    return this.http.get<{ program: string; tiers: LoyaltyTier[]; partners: LoyaltyPartner[] }>(`${this.API}/platform/loyalty`);
+  }
+
+  askConcierge(question: string, locale = 'en'): Observable<ConciergeReply> {
+    return this.http.post<ConciergeReply>(`${this.API}/platform/concierge/ask`, { question, locale });
+  }
+}
+
+export interface Solution {
+  code: string; name: string; domain: string; blurb: string; route: string; icon: string; pillars: string[];
+}
+export interface Stay {
+  id: string; name: string; city: string; country: string; tier: string; stars: number;
+  priceFrom: number; currency: string; blurb: string; amenities: string[]; hubAirport: string;
+}
+export interface Cruise {
+  id: string; name: string; ship: string; embarkPort: string; portsOfCall: string;
+  nights: number; priceFrom: number; currency: string; tier: string; perks: string[]; blurb: string;
+}
+export interface CargoLane {
+  code: string; lane: string; commodity: string; capacityScore: number; etdHours: number; note: string;
+}
+export interface LoyaltyTier {
+  code: string; name: string; pointsThreshold: number; earnMultiplier: number; perk: string;
+}
+export interface LoyaltyPartner { name: string; category: string; offer: string; }
+export interface ConciergeReply {
+  answer: string; mode: string; suggestedActions: string[]; context: Record<string, unknown>;
 }

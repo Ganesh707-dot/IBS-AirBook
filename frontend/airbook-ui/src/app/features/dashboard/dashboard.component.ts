@@ -13,16 +13,16 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, RouterLink, CardModule, ButtonModule, TagModule, TableModule],
   template: `
-    <div class="container dash">
+    <div class="container-wide dash">
       <div class="hero">
         <div>
-          <p-tag value="CUSTOMER PORTAL" severity="success"></p-tag>
+          <p-tag value="TRAVELER WORKSPACE" severity="success"></p-tag>
           <h1>Welcome, {{ auth.user()?.fullName || 'Traveler' }}</h1>
-          <p>Your trips, payments, and check-in — separated from Admin CMS and Analyst BI.</p>
+          <p>Your journey hub — flights, luxury stays, cruise, AI concierge, and check-in. Separate from Analyst BI and Ops CMS.</p>
         </div>
         <div class="actions">
           <a routerLink="/search"><p-button label="Book a flight" icon="pi pi-search"></p-button></a>
-          <a routerLink="/checkin"><p-button label="Check in" icon="pi pi-ticket" [outlined]="true"></p-button></a>
+          <a routerLink="/concierge"><p-button label="AI Concierge" icon="pi pi-sparkles" [outlined]="true"></p-button></a>
         </div>
       </div>
 
@@ -38,17 +38,25 @@ import { AuthService } from '../../core/services/auth.service';
           <i class="pi pi-briefcase"></i>
           <div><strong>My Trips</strong><span>View & settle bookings</span></div>
         </a>
+        <a routerLink="/stays" class="quick-card">
+          <i class="pi pi-building"></i>
+          <div><strong>Hotels</strong><span>iStay luxury inventory</span></div>
+        </a>
+        <a routerLink="/cruise" class="quick-card">
+          <i class="pi pi-compass"></i>
+          <div><strong>Cruise</strong><span>iTravel shore-to-ship</span></div>
+        </a>
+        <a routerLink="/loyalty" class="quick-card">
+          <i class="pi pi-star"></i>
+          <div><strong>Loyalty</strong><span>iLoyal tiers & partners</span></div>
+        </a>
         <a routerLink="/checkin" class="quick-card">
           <i class="pi pi-id-card"></i>
           <div><strong>Web Check-in</strong><span>Boarding pass delivery</span></div>
         </a>
-        <a routerLink="/tracker" class="quick-card">
-          <i class="pi pi-map"></i>
-          <div><strong>Live Tracker</strong><span>OpenSky ADS-B map</span></div>
-        </a>
-        <a routerLink="/search" class="quick-card">
-          <i class="pi pi-send"></i>
-          <div><strong>Find flights</strong><span>Search Offer catalog</span></div>
+        <a routerLink="/concierge" class="quick-card">
+          <i class="pi pi-sparkles"></i>
+          <div><strong>AI Concierge</strong><span>Naviq tourist assist</span></div>
         </a>
       </div>
 
@@ -93,7 +101,7 @@ import { AuthService } from '../../core/services/auth.service';
     .kpi { background:#fff; border:1px solid var(--gray-300); border-radius:14px; padding:1rem; }
     .kpi span { display:block; font-size:.75rem; color:#667; }
     .kpi strong { font-size:1.35rem; color:var(--navy); }
-    .quick { display:grid; grid-template-columns:repeat(4,1fr); gap:.85rem; }
+    .quick { display:grid; grid-template-columns:repeat(3,1fr); gap:.85rem; }
     .quick-card { display:flex; gap:.85rem; align-items:center; background:#fff; border:1px solid var(--gray-300);
       border-radius:14px; padding:1rem; color:inherit; transition: border-color .15s, transform .15s; }
     .quick-card:hover { border-color:var(--teal); transform: translateY(-2px); }
@@ -105,9 +113,6 @@ import { AuthService } from '../../core/services/auth.service';
     @media (max-width:900px) {
       .kpi-row, .quick { grid-template-columns:1fr 1fr; }
       .hero { flex-direction:column; }
-    }
-    @media (max-width:560px) {
-      .kpi-row, .quick { grid-template-columns:1fr; }
     }
   `]
 })

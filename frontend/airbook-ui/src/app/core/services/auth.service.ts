@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
+import { catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export type UserRole = 'ADMIN' | 'ANALYST' | 'CUSTOMER';
@@ -18,7 +19,9 @@ export class AuthService {
   private readonly API = `${environment.apiUrl}/auth`;
   user = signal<AuthUser | null>(this.loadStored());
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) {
+    this.syncProfile();
+  }
 
   login(email: string, password: string) {
     return this.http.post<{ token: string; email: string; fullName: string; role: string }>(
@@ -28,6 +31,20 @@ export class AuthService {
       localStorage.setItem('airbook_user', JSON.stringify(user));
       this.user.set(user);
     }));
+  }
+
+  /** Refresh role/name from server so ANALYST isn't stuck as ADMIN in localStorage. */
+  syncProfile() {
+    const current = this.user();
+    if (!current?.token) return;
+    this.http.get<{ email: string; fullName: string; role: string }>(`${this.API}/me`).pipe(
+      catchError(() => of(null))
+    ).subscribe(res => {
+      if (!res) return;
+      const next: AuthUser = { ...current, email: res.email, fullName: res.fullName, role: res.role };
+      localStorage.setItem('airbook_user', JSON.stringify(next));
+      this.user.set(next);
+    });
   }
 
   logout() {
@@ -48,12 +65,11 @@ export class AuthService {
   canAccessBi() { return this.hasAnyRole('ADMIN', 'ANALYST'); }
   getToken() { return this.user()?.token ?? ''; }
 
-  /** Role-based landing after login */
   homeRoute(): string {
     if (this.isAdmin()) return '/admin';
     if (this.isAnalyst()) return '/bi';
     if (this.isCustomer()) return '/dashboard';
-    return '/search';
+    return '/';
   }
 
   private loadStored(): AuthUser | null {
