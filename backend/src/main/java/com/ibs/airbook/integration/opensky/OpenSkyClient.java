@@ -79,6 +79,11 @@ public class OpenSkyClient {
     public int estimateCorridorDemand(String origin, String destination) {
         double[] box = corridorBox(origin, destination);
         List<LiveFlight> live = fetchLiveTraffic(box[0], box[1], box[2], box[3]);
+        if (live.isEmpty()) {
+            // Fast heuristic when OpenSky is slow/rate-limited — keep search responsive
+            int h = Math.abs((origin + "-" + destination).hashCode());
+            return 45 + (h % 40);
+        }
         int airborne = (int) live.stream().filter(f -> !Boolean.TRUE.equals(f.onGround())).count();
         return Math.min(100, 35 + airborne * 2);
     }

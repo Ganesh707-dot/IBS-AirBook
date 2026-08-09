@@ -89,6 +89,10 @@ If you see “too many requests” / no flights: OpenSky free tier is rate-limit
 
 ---
 
+## Speed tip
+
+Search and booking stay fast even if OpenSky is rate-limited. Live Tracker may show empty until OpenSky recovers — booking does **not** depend on it.
+
 ## Suggested 3-minute interview demo
 
 1. **Home** → search COK → DXB  

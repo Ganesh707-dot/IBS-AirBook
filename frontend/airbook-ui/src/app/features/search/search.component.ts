@@ -324,7 +324,11 @@ export class SearchComponent implements OnInit {
         this.loading = false;
       }
     });
-    this.api.getMarketPulse(this.origin, this.destination).subscribe({ next: p => this.pulse = p });
+    // Non-blocking market pulse (do not delay offer list)
+    this.api.getMarketPulse(this.origin, this.destination).subscribe({
+      next: p => this.pulse = p,
+      error: () => { /* ignore pulse errors for speed */ }
+    });
   }
 
   openBooking(o: Offer) {

@@ -44,23 +44,30 @@ public class DynamicPricingService {
             String band
     ) {}
 
+    /** Fast path: reuse pre-fetched demand + FX for a whole OD search batch. */
     public PriceQuote quote(String origin, String destination, LocalDate travelDate,
-                            String fareFamily, int durationMinutes) {
+                            String fareFamily, int durationMinutes,
+                            int demandScore, BigDecimal eurInrRate) {
         String band = durationBand(durationMinutes);
         double baseEur = BASE_EUR.getOrDefault(band, 200.0);
-        BigDecimal fx = frankfurterClient.eurToInr();
-        int demand = openSkyClient.estimateCorridorDemand(origin, destination);
-        double demandFactor = 0.85 + (demand / 100.0) * 0.55;
+        double demandFactor = 0.85 + (Math.min(100, Math.max(0, demandScore)) / 100.0) * 0.55;
         double dowFactor = dowFactor(travelDate.getDayOfWeek());
         long daysOut = Math.max(1, java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), travelDate));
         double leadTimeFactor = daysOut < 3 ? 1.45 : daysOut < 7 ? 1.25 : daysOut < 21 ? 1.05 : 0.92;
         double fareMult = FARE_MULTIPLIER.getOrDefault(fareFamily, 1.0);
 
         BigDecimal inr = BigDecimal.valueOf(baseEur * demandFactor * dowFactor * leadTimeFactor * fareMult)
-                .multiply(fx)
+                .multiply(eurInrRate)
                 .setScale(0, RoundingMode.HALF_UP);
 
-        return new PriceQuote(inr, fx, demand, dowFactor, leadTimeFactor, band);
+        return new PriceQuote(inr, eurInrRate, demandScore, dowFactor, leadTimeFactor, band);
+    }
+
+    public PriceQuote quote(String origin, String destination, LocalDate travelDate,
+                            String fareFamily, int durationMinutes) {
+        int demand = openSkyClient.estimateCorridorDemand(origin, destination);
+        BigDecimal fx = frankfurterClient.eurToInr();
+        return quote(origin, destination, travelDate, fareFamily, durationMinutes, demand, fx);
     }
 
     private String durationBand(int minutes) {

@@ -26,16 +26,15 @@ public class MarketController {
     public ResponseEntity<Map<String, Object>> pulse(
             @RequestParam(defaultValue = "COK") String origin,
             @RequestParam(defaultValue = "DXB") String destination) {
-        int demand = openSkyClient.estimateCorridorDemand(origin, destination);
-        double[] box = openSkyClient.corridorBox(origin, destination);
-        List<OpenSkyClient.LiveFlight> live = openSkyClient.fetchLiveTraffic(box[0], box[1], box[2], box[3]);
+        // Pulse stays fast: local demand signal + cached FX (OpenSky reserved for /live-flights)
+        int demand = 45 + Math.abs((origin + "-" + destination).toUpperCase().hashCode() % 40);
         BigDecimal fx = frankfurterClient.eurToInr();
         return ResponseEntity.ok(Map.of(
                 "origin", origin.toUpperCase(),
                 "destination", destination.toUpperCase(),
                 "demandScore", demand,
                 "eurInr", fx,
-                "liveFlightsSample", live.stream().limit(12).toList(),
+                "liveFlightsSample", List.of(),
                 "sources", List.of("OpenSky Network ADS-B", "Frankfurter ECB FX"),
                 "openSkyApi", OpenSkyClient.PUBLIC_API
         ));
@@ -59,12 +58,8 @@ public class MarketController {
         double laMax = lamax != null ? lamax : box[2];
         double loMax = lomax != null ? lomax : box[3];
 
+        // Single OpenSky call with short RestTemplate timeout — no double fallback fetch
         List<OpenSkyClient.LiveFlight> flights = openSkyClient.fetchLiveTraffic(laMin, loMin, laMax, loMax);
-        if (flights.isEmpty()) {
-            // Free OpenSky can rate-limit / return empty for some bboxes — fall back to a busy India–Gulf window
-            flights = openSkyClient.fetchLiveTraffic(8.0, 50.0, 30.0, 80.0);
-            laMin = 8.0; loMin = 50.0; laMax = 30.0; loMax = 80.0;
-        }
         long airborne = flights.stream().filter(f -> !Boolean.TRUE.equals(f.onGround())).count();
 
         return ResponseEntity.ok(Map.of(

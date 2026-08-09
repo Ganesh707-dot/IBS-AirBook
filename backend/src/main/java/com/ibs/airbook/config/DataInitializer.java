@@ -132,15 +132,12 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void warmPopularMarkets() {
-        String[][] markets = {
-                {"COK", "DXB"}, {"BOM", "DXB"}, {"DEL", "LHR"}, {"BLR", "SIN"},
-                {"DEL", "JFK"}, {"MAA", "SIN"}, {"HYD", "DXB"}, {"CCU", "BKK"}
-        };
+        // Keep startup fast — warm only top corridors
+        String[][] markets = {{"COK", "DXB"}, {"BOM", "DXB"}};
         LocalDate base = LocalDate.now().plusDays(5);
         for (String[] m : markets) {
             try {
                 offerService.search(m[0], m[1], base);
-                offerService.search(m[0], m[1], base.plusDays(2));
             } catch (Exception e) {
                 log.warn("Market warm-up failed for {}-{}: {}", m[0], m[1], e.getMessage());
             }
