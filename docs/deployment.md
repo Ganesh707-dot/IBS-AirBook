@@ -1,144 +1,313 @@
-# Deployment Guide — AirBook
+# Deployment Guide — AirBook Enterprise
 
-How to run and publish **AirBook** (Airline Retail Platform).
+Step-by-step instructions to run and publish AirBook locally or on free cloud hosting.
 
-## Options
-
-| Mode | Best for | URL style |
-|------|----------|-----------|
-| Local JAR / `mvn` + `npm` | Development | `localhost` |
-| Docker all-in-one | Same machine / VPS | any host:8080 |
-| Docker Compose | Backend + Postgres + nginx UI | local ports |
-| Render free (`render.yaml`) | Persistent public demo | `https://airbook.onrender.com` |
+**Live production URL:** https://airbook-glvv.onrender.com
 
 ---
 
-## 1. Local development
+## Table of contents
+
+1. [Deployment options compared](#1-deployment-options-compared)
+2. [Local development](#2-local-development)
+3. [Docker all-in-one](#3-docker-all-in-one)
+4. [Docker Compose (PostgreSQL)](#4-docker-compose-postgresql)
+5. [Render free (recommended — live now)](#5-render-free-recommended--live-now)
+6. [Fly.io](#6-flyio)
+7. [Cloudflare Pages (frontend CDN)](#7-cloudflare-pages-frontend-cdn)
+8. [Environment variables](#8-environment-variables)
+9. [Health check & verification](#9-health-check--verification)
+10. [Troubleshooting](#10-troubleshooting)
+
+---
+
+## 1. Deployment options compared
+
+| Platform | Cost | UI + API one URL | Credit card | Cold start | Status |
+|----------|------|------------------|-------------|------------|--------|
+| **Render** | Free | Yes | No | 30–90s | **Live** |
+| Fly.io | Trial then paid | Yes | After trial | 15–45s | Config ready |
+| Cloudflare Pages | Free | UI only* | No | Instant UI | Config ready |
+| Docker local | Free | Yes | — | None | Dev |
+| Docker Compose | Free | Yes | — | None | Dev + Postgres |
+
+*Cloudflare Pages serves the Angular UI; `/api/*` is proxied to a backend via Pages Function.
+
+---
+
+## 2. Local development
+
+Best for coding and debugging with hot reload.
+
+### Prerequisites
+
+- Java 17+
+- Maven 3.8+
+- Node.js 20+ and npm
 
 ### Backend
+
 ```bash
 cd backend
 mvn spring-boot:run
 ```
-- API: http://localhost:8080  
-- Swagger: http://localhost:8080/swagger-ui.html  
-- Health: http://localhost:8080/api/health  
 
-### Frontend
+| URL | Purpose |
+|-----|---------|
+| http://localhost:8080/api/health | Health check |
+| http://localhost:8080/swagger-ui.html | API documentation |
+| http://localhost:8080/api/offers/search?origin=DXB&destination=COK&travelDate=2026-09-01 | Test offers |
+
+### Frontend (separate dev server)
+
 ```bash
 cd frontend/airbook-ui
 npm install
 npm start
 ```
-- UI: http://localhost:4200 (calls API at `http://localhost:8080/api`)
+
+| URL | Purpose |
+|-----|---------|
+| http://localhost:4200 | Angular dev server |
+| API proxy | Calls `http://localhost:8080/api` via `environment.ts` |
 
 ---
 
-## 2. Production all-in-one (recommended demo)
+## 3. Docker all-in-one
 
-Builds Angular into Spring Boot static resources and runs one process.
+Builds Angular into Spring Boot static resources — **one container, one URL**.
+
+### Build and run
 
 ```bash
+# From repo root
 docker build -t airbook .
-docker run -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod airbook
+docker run -p 8080:8080 \
+  -e SPRING_PROFILES_ACTIVE=prod \
+  -e JWT_SECRET="your-long-random-secret" \
+  airbook
 ```
 
-Open: http://localhost:8080
+Open: **http://localhost:8080**
 
-### Optional env vars
+### What the Dockerfile does
 
-| Variable | Purpose |
-|----------|---------|
-| `PORT` | HTTP port (default `8080`) |
-| `SPRING_PROFILES_ACTIVE` | `prod` (H2) or `docker` (Postgres) |
-| `JWT_SECRET` | Override JWT signing secret |
-| `GROQ_API_KEY` | Optional free Groq LLM for AI BI narratives |
-| `CORS_ORIGINS` | Comma-separated origins if UI is on another host |
+```
+Stage 1 (node:22)     → npm ci + ng build → dist/airbook-ui/browser
+Stage 2 (temurin:17)  → mvn package with static files embedded
+Stage 3 (jre:17)      → run app.jar on port 8080
+```
+
+Build time: ~8–15 minutes first run (cached layers are faster).
+
+### Fast production build (CI / Fly.io)
+
+For faster deploys when UI is pre-built on the CI runner:
+
+```bash
+bash scripts/build-all.sh          # builds Angular → copies to backend/static
+docker build -f Dockerfile.prod -t airbook .
+```
 
 ---
 
-## 3. Docker Compose (Postgres)
+## 4. Docker Compose (PostgreSQL)
+
+Persistent PostgreSQL instead of in-memory H2.
 
 ```bash
 docker compose up --build
 ```
 
-- API: http://localhost:8080  
-- UI (nginx): http://localhost:4200  
-- Postgres: `localhost:5432` (`airbook` / `airbook123`)
+| Service | URL |
+|---------|-----|
+| API + UI | http://localhost:8080 |
+| Frontend nginx | http://localhost:4200 |
+| PostgreSQL | localhost:5432 (user: `airbook`, pass: `airbook123`) |
 
-Compose sets `SPRING_PROFILES_ACTIVE=docker` on the backend.
+Uses `SPRING_PROFILES_ACTIVE=docker`.
 
 ---
 
-## 4. Fly.io free (recommended for IBS interview)
+## 5. Render free (recommended — live now)
 
-Best free option for this Spring Boot Docker app — faster wake than Render.
+**Current live URL:** https://airbook-glvv.onrender.com
+
+No credit card required. Full UI + Java API in one Docker container.
+
+### First-time setup
+
+1. Create account: https://dashboard.render.com/register
+2. Sign up with **GitHub**
+3. Click **New +** → **Blueprint**
+4. Connect repository: **Ganesh707-dot/IBS-AirBook**
+5. Render reads [`render.yaml`](../render.yaml) automatically
+6. **GROQ_API_KEY** — leave **empty** (optional, not required)
+7. Click **Apply** / **Deploy**
+8. Wait **10–20 minutes** for first Docker build
+9. Status turns **Live** → open your URL (shown at top of service page)
+
+### Render service settings (from render.yaml)
+
+| Setting | Value |
+|---------|-------|
+| Runtime | Docker |
+| Dockerfile | `./Dockerfile` |
+| Plan | Free |
+| Region | Singapore |
+| Health check | `/api/health` |
+| Profile | `SPRING_PROFILES_ACTIVE=prod` |
+| JVM | `-Xms64m -Xmx256m` (512MB instance) |
+
+### Redeploy after code changes
+
+1. Push to `main` on GitHub
+2. Render auto-deploys, OR
+3. Dashboard → your service → **Manual Deploy** → **Deploy latest commit**
+
+### Render free tier behavior
+
+- App **sleeps after ~15 min** of no traffic
+- First request after sleep: **30–90 seconds** to wake
+- Startup on deploy: **~4 minutes** (Spring Boot + JPA init)
+- URL format: `https://<service-name>.onrender.com` (yours may differ from `airbook.onrender.com`)
+
+---
+
+## 6. Fly.io
+
+Alternative for faster wake times. **Note:** Fly.io no longer offers permanent free hosting for new accounts — trial requires no card, continued use requires payment.
+
+### Via GitHub Actions (no local CLI)
+
+1. Create Fly account: https://fly.io/app/sign-up
+2. Install Fly CLI → `fly auth login` → `fly tokens create deploy -x 999999h`
+3. GitHub repo → **Settings** → **Secrets** → add `FLY_API_TOKEN`
+4. **Actions** → **Deploy to Fly.io** → **Run workflow**
+5. URL: **https://airbook-enterprise.fly.dev**
+
+### Via local CLI
 
 ```bash
-# Install: https://fly.io/docs/hands-on/install-flyctl/
 fly auth login
-fly launch --no-deploy    # use existing fly.toml, skip Postgres
+cd IBS-AirBook
 fly secrets set JWT_SECRET="$(openssl rand -base64 32)"
-fly deploy
+bash scripts/build-all.sh
+fly deploy --dockerfile Dockerfile.prod
 ```
 
-App URL: **https://airbook-enterprise.fly.dev**
-
-Optional CI: add `FLY_API_TOKEN` to GitHub secrets → pushes to `main` auto-deploy via `.github/workflows/fly-deploy.yml`.
-
-Notes:
-- Free tier sleeps when idle; first request wakes the machine (~15–45s).
-- Memory set to 512MB with `-Xmx384m` for stable JVM on free VMs.
+Config: [`fly.toml`](../fly.toml)
 
 ---
 
-## 5. Render free (backup URL)
+## 7. Cloudflare Pages (frontend CDN)
 
-Repo includes [`render.yaml`](../render.yaml) with service name **`airbook`**.
+Fast global CDN for the Angular UI. **Requires a separate backend** for API calls.
 
-1. Push latest `main` to GitHub: https://github.com/Ganesh707-dot/IBS-AirBook  
-2. In [Render](https://render.com) → **New** → **Blueprint** → select this repo  
-3. Apply blueprint → wait for Docker build (5–10 min)  
-4. App URL: **https://airbook.onrender.com**
+### Setup
 
-Notes:
-- Free tier cold-start can be **30–90s** after idle — not ideal for live manager demos.
-- Set `GROQ_API_KEY` in Render env if you want LLM mode for AI BI.
+1. Deploy backend first (Render or Fly.io)
+2. Cloudflare Dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect Git**
+3. Repository: `Ganesh707-dot/IBS-AirBook`
+
+| Setting | Value |
+|---------|-------|
+| Root directory | `frontend/airbook-ui` |
+| Build command | `npm ci && npm run build` |
+| Build output | `dist/airbook-ui/browser` |
+| Env var | `API_ORIGIN=https://airbook-glvv.onrender.com` |
+
+4. Deploy → share `https://<project-name>.pages.dev`
+
+The Pages Function at `functions/api/[[path]].ts` proxies `/api/*` to `API_ORIGIN`.
+
+See also: [CLOUDFLARE-DEPLOY.md](./CLOUDFLARE-DEPLOY.md)
 
 ---
 
-## 6. Quick public tunnel (temporary)
+## 8. Environment variables
 
-For a short recruiter share from your laptop (URL name is random):
+| Variable | Required | Default | Purpose |
+|----------|----------|---------|---------|
+| `PORT` | Auto (Render/Fly) | `8080` | HTTP listen port |
+| `SPRING_PROFILES_ACTIVE` | Recommended | — | `prod` (H2) or `docker` (Postgres) |
+| `JWT_SECRET` | Prod recommended | built-in dev key | JWT signing secret |
+| `JAVA_OPTS` | Optional | see Dockerfile | JVM heap settings |
+| `GROQ_API_KEY` | **No** | empty | Optional Groq LLM for AI BI |
+| `GROQ_MODEL` | No | `llama-3.1-8b-instant` | Groq model name |
+| `CORS_ORIGINS` | No | localhost | Comma-separated allowed origins |
+| `API_ORIGIN` | Cloudflare only | — | Backend URL for Pages proxy |
+
+---
+
+## 9. Health check & verification
+
+After any deploy, verify:
 
 ```bash
-# after jar/docker is listening on 8080
-cloudflared tunnel --url http://localhost:8080
+curl https://airbook-glvv.onrender.com/api/health
 ```
 
-Prefer Render for a stable link.
-
----
-
-## Health check
-
-Any environment should return:
-
+Expected response:
 ```json
-{"status":"UP","service":"AirBook API"}
+{
+  "status": "UP",
+  "service": "AirBook Enterprise API",
+  "version": "2.2.0",
+  "timestamp": "2026-08-09T22:30:44.979Z"
+}
 ```
 
-at `GET /api/health`.
+### Smoke test checklist
+
+- [ ] Home page loads
+- [ ] Login as `customer@airbook.com` / `customer123`
+- [ ] Flight search returns offers
+- [ ] Hotels page shows properties
+- [ ] Analyst login opens `/bi` dashboard
+- [ ] Admin login opens `/admin` CMS
 
 ---
 
-## Demo credentials
+## 10. Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| Page never loads | Cold start / crash | Wait 90s, refresh; check Render Logs |
+| Render "No open ports detected" during deploy | Slow Spring Boot startup (~4 min) | Normal — wait until "Your service is live" |
+| `OutOfMemoryError` in logs | 512MB limit | Already tuned to `-Xmx256m`; redeploy latest |
+| Login returns 401 | Wrong credentials | Use demo credentials from README |
+| BI page redirects | Wrong role | Use analyst or admin account |
+| OpenSky tracker empty | Rate limit | Wait 1–5 min, refresh |
+| Build fails on Render | Docker timeout | Retry Manual Deploy |
+| Wrong URL | Service name differs | Copy URL from Render dashboard top bar |
+
+### Render logs
+
+Dashboard → your service → **Logs** → scroll to bottom for errors.
+
+### Local build verify
+
+```bash
+cd frontend/airbook-ui && npm run build
+cd backend && mvn -DskipTests package
+```
+
+---
+
+## Demo credentials (all environments)
 
 | Role | Email | Password |
 |------|-------|----------|
-| Customer | `customer@airbook.com` | `customer123` |
-| Admin | `admin@airbook.com` | `admin123` |
+| Traveler | `customer@airbook.com` | `customer123` |
 | Analyst | `analyst@airbook.com` | `analyst123` |
+| Admin | `admin@airbook.com` | `admin123` |
 
-See also [user-manual.md](./user-manual.md) for test scenarios and [architecture.md](./architecture.md) for module design.
+---
+
+## Related docs
+
+- [FREE-DEPLOY.md](./FREE-DEPLOY.md) — free hosting options summary
+- [architecture.md](./architecture.md) — technical design
+- [user-manual.md](./user-manual.md) — feature guide
+- [IBS-INTERVIEW-DEMO.md](./IBS-INTERVIEW-DEMO.md) — demo script

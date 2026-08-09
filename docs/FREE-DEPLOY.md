@@ -1,63 +1,81 @@
-# Free live deployment — UI + backend on ONE URL
+# Free Deployment — AirBook Enterprise
 
-**Best free option:** [Fly.io](https://fly.io) — full app (Angular + Java) at **https://airbook-enterprise.fly.dev**
-
-Cost: **$0** on free tier (app sleeps when idle; first visit may take ~30–60s to wake).
+How to host AirBook for **$0** with UI and Java API together.
 
 ---
 
-## Option A — GitHub Actions (easiest, no local install)
+## Currently live (Render free)
 
-1. Create a free Fly account: https://fly.io/app/sign-up  
-2. Install Fly CLI once on your PC, then create a deploy token:
-   ```bash
-   fly auth login
-   fly tokens create deploy -x 999999h
-   ```
-3. GitHub → **Ganesh707-dot/IBS-AirBook** → **Settings** → **Secrets and variables** → **Actions**  
-   Add secret: `FLY_API_TOKEN` = paste the token  
-4. GitHub → **Actions** → **Deploy to Fly.io (free — UI + API one URL)** → **Run workflow**  
-5. Wait ~5–8 minutes. Open: **https://airbook-enterprise.fly.dev**
+| | |
+|---|---|
+| **URL** | https://airbook-glvv.onrender.com |
+| **Cost** | $0 / month |
+| **Credit card** | Not required |
+| **Includes** | Angular UI + Spring Boot API (one link) |
 
-First load after idle: wait up to 60 seconds, then refresh.
+First visit after idle: wait **30–90 seconds**, then refresh.
 
 ---
 
-## Option B — Fly CLI on your machine
+## Option comparison
+
+| Platform | Free forever? | UI + API | Card needed | Best for |
+|----------|---------------|----------|-------------|----------|
+| **Render** | Yes (with limits) | Yes | No | **Resume / manager demo** |
+| Fly.io | No (trial only) | Yes | After trial | Faster wake if paid |
+| Cloudflare Pages | Yes | UI only | No | Fast CDN front-end |
+| Docker local | Yes | Yes | — | Development |
+
+---
+
+## Option A — Render (recommended, already deployed)
+
+### One-time setup
+
+1. https://dashboard.render.com/register → Sign up with GitHub
+2. **New +** → **Blueprint** → connect `Ganesh707-dot/IBS-AirBook`
+3. Leave `GROQ_API_KEY` empty → **Apply**
+4. Wait 10–20 min → status **Live**
+
+### Your URL
+
+Render assigns a URL like `https://airbook-<id>.onrender.com`. Copy from dashboard.
+
+### Redeploy after git push
+
+Push to `main` → Render auto-rebuilds.
+
+Full guide: [deployment.md](./deployment.md#5-render-free-recommended--live-now)
+
+---
+
+## Option B — Fly.io (trial, then paid)
+
+Fly.io removed permanent free tier for new accounts. Trial = 2 VM hours or 7 days.
 
 ```bash
 fly auth login
-cd IBS-AirBook
-fly secrets set JWT_SECRET="pick-a-long-random-string-here"
-bash scripts/build-all.sh
-fly deploy --dockerfile Dockerfile.prod
+fly tokens create deploy -x 999999h
+# Add FLY_API_TOKEN to GitHub Secrets
+# Run GitHub Action: Deploy to Fly.io
 ```
 
-Live URL: **https://airbook-enterprise.fly.dev**
+URL: https://airbook-enterprise.fly.dev
 
 ---
 
-## Option C — Cloudflare Pages (UI only, needs backend)
+## Option C — Cloudflare Pages (UI) + Render (API)
 
-Fast CDN for users, but **login/API need Fly backend** too.
+1. Backend on Render (Option A)
+2. Cloudflare Pages → connect GitHub → root `frontend/airbook-ui`
+3. Env: `API_ORIGIN=https://airbook-glvv.onrender.com`
+4. Share: `https://<project>.pages.dev`
 
-1. Deploy backend first (Option A or B)  
-2. Cloudflare → Pages → Connect GitHub → repo `IBS-AirBook`  
-3. Root: `frontend/airbook-ui` · Build: `npm ci && npm run build` · Output: `dist/airbook-ui/browser`  
-4. Env var: `API_ORIGIN=https://airbook-enterprise.fly.dev`  
-5. Share: **https://ibs-airbook.pages.dev** (or your project name)
-
----
-
-## Option D — Render (backup, less reliable on free)
-
-Connect GitHub to Render using `render.yaml`. URL: **https://airbook.onrender.com**
-
-Free tier cold-starts often fail or take 90+ seconds. Prefer Fly.io for demos.
+See: [CLOUDFLARE-DEPLOY.md](./CLOUDFLARE-DEPLOY.md)
 
 ---
 
-## Demo logins (all options)
+## Demo credentials
 
 | Role | Email | Password |
 |------|-------|----------|
@@ -67,10 +85,12 @@ Free tier cold-starts often fail or take 90+ seconds. Prefer Fly.io for demos.
 
 ---
 
-## Resume link
+## Resume links
 
-After Fly deploy succeeds, use:
+**Live demo:** https://airbook-glvv.onrender.com  
+**GitHub:** https://github.com/Ganesh707-dot/IBS-AirBook
 
-**https://airbook-enterprise.fly.dev**
+Example resume line:
 
-GitHub backup: **https://github.com/Ganesh707-dot/IBS-AirBook**
+> **AirBook Enterprise** — Full-stack IBS-style travel commerce platform (Java Spring Boot, Angular, RBAC, OOSD booking, hotels/cruise/cargo/loyalty, live flight/FX/weather APIs)  
+> Live: https://airbook-glvv.onrender.com · GitHub: https://github.com/Ganesh707-dot/IBS-AirBook

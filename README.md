@@ -1,138 +1,191 @@
-# AirBook Enterprise — IBS Interview Demo Platform
+# AirBook Enterprise — IBS-Style Travel Commerce Platform
 
-> **Deploy free (UI + API one URL):** [docs/FREE-DEPLOY.md](docs/FREE-DEPLOY.md)  
-> **Live URL after deploy:** https://airbook-enterprise.fly.dev  
-> **Repository:** https://github.com/Ganesh707-dot/IBS-AirBook
+> **Live demo:** https://airbook-glvv.onrender.com  
+> **GitHub:** https://github.com/Ganesh707-dot/IBS-AirBook  
+> **Author:** Ganesh V · [LinkedIn](https://linkedin.com/in/ganesh-v-2564bb21a)
 
-**Fly.io (free)** = Angular UI + Java API together. No Render cold-start issues. Cloudflare Pages optional for faster CDN front-end.
+Full-stack airline retail platform inspired by **IBS Software** domains — passenger retail (iFly), hospitality (iStay), cruise, cargo (iCargo), loyalty (iLoyal), and AI-assisted travel (Naviq-style concierge). Built with **Java Spring Boot** + **Angular 19** + **PrimeNG**, with enterprise RBAC and real free external APIs where available.
 
-## Manager / IBS demo (2 min)
+---
 
-| Step | Login | Show |
-|------|-------|------|
-| 1 | `customer@airbook.com` / `customer123` | Flights → book → Hotels/Cruise Reserve → My Journey |
-| 2 | `analyst@airbook.com` / `analyst123` | Retail Intelligence BI |
-| 3 | `admin@airbook.com` / `admin123` | Ops CMS + Intelligence |
+## Quick links
 
-Full script: **[docs/IBS-INTERVIEW-DEMO.md](docs/IBS-INTERVIEW-DEMO.md)**
+| Document | Description |
+|----------|-------------|
+| [Software architecture](docs/architecture.md) | Modules, OOSD flow, RBAC, AI design, external APIs |
+| [User manual](docs/user-manual.md) | How to use every feature — booking, BI, admin, hotels, cruise |
+| [Deployment guide](docs/deployment.md) | Local, Docker, Render, Fly.io, Cloudflare — step by step |
+| [Free deployment](docs/FREE-DEPLOY.md) | $0 hosting options compared |
+| [IBS interview demo](docs/IBS-INTERVIEW-DEMO.md) | 5-minute manager walkthrough script |
 
-## Docs
-
-- [Technical architecture](docs/architecture.md) — modules, booking APIs, AI design  
-- [User manual](docs/user-manual.md) — how to book, tracker, AI BI demo script  
-- [Cloudflare Pages deploy](docs/CLOUDFLARE-DEPLOY.md) — **shareable URL for users**  
-- [Deployment guide](docs/deployment.md) — local, Docker, Fly.io, Render  
-- [IBS interview demo script](docs/IBS-INTERVIEW-DEMO.md) — 5-minute manager walkthrough
-
-## Booking & AI (short answers)
-
-**Booking works?** Yes — login as customer → Flights → Book wizard → Pay & confirm → My Trips / Check-in (real Order → Settle → Deliver APIs).
-
-**AI is used for?** Retail BI & personalization — insights, natural-language analyst Q&A, ancillary upsell ranking during booking, demand forecast. Not for inventing live aircraft positions (that’s OpenSky).
+---
 
 ## Live demo credentials
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin / BI | `admin@airbook.com` | `admin123` |
-| Customer | `customer@airbook.com` | `customer123` |
-| Analyst | `analyst@airbook.com` | `analyst123` |
+| Role | Email | Password | Landing page |
+|------|-------|----------|--------------|
+| **Traveler** | `customer@airbook.com` | `customer123` | `/dashboard` |
+| **Analyst** | `analyst@airbook.com` | `analyst123` | `/bi` |
+| **Admin** | `admin@airbook.com` | `admin123` | `/admin` |
 
-## Why this is enterprise-grade
+> **Note:** First visit on free Render may take **30–90 seconds** to wake up. Refresh once if loading.
+
+---
+
+## Platform modules
+
+| Module | Route | Backend API | Description |
+|--------|-------|-------------|-------------|
+| Passenger retail | `/search` | `/api/offers`, `/api/orders` | Dynamic flight search + OOSD booking |
+| Luxury hotels | `/stays` | `/api/platform/stays` | Hospitality catalog + reserve |
+| Cruise | `/cruise` | `/api/platform/cruises` | Cruise packages + book |
+| Cargo intelligence | `/cargo` | `/api/platform/cargo/lanes` | Freight lane catalog |
+| Loyalty | `/loyalty` | `/api/platform/loyalty` | Tiers, partners, earn/burn |
+| AI concierge | `/concierge` | `/api/platform/concierge/ask` | Domain-aware travel assistant |
+| Live tracker | `/tracker` | `/api/market/live-flights` | OpenSky ADS-B map |
+| Retail BI | `/bi` | `/api/analytics`, `/api/ai` | KPIs, insights, NL Q&A |
+| Ops CMS | `/admin` | `/api/catalog/routes` | Route catalog management |
+| My journey | `/dashboard`, `/bookings` | `/api/orders`, `/api/platform/reservations` | Trips + hotel/cruise refs |
+
+---
+
+## Architecture (high level)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Angular 19 SPA (PrimeNG) — role-based routes & guards      │
+│  home · search · stays · cruise · cargo · loyalty · bi ...  │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ REST + JWT (/api/*)
+┌──────────────────────────▼──────────────────────────────────┐
+│  Spring Boot 3.2 Modular Monolith (Java 17)                 │
+│  ┌─────────┬─────────┬─────────┬──────────┬───────────────┐ │
+│  │  auth   │  offer  │  order  │  settle  │   deliver     │ │
+│  ├─────────┼─────────┼─────────┼──────────┼───────────────┤ │
+│  │ catalog │ pricing │analytics│    ai    │   platform    │ │
+│  ├─────────┴─────────┴─────────┴──────────┴───────────────┤ │
+│  │  market  ←  OpenSky · Frankfurter · Open-Meteo          │ │
+│  └─────────────────────────────────────────────────────────┘ │
+│  H2 (prod demo) · PostgreSQL (docker profile)               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+See [docs/architecture.md](docs/architecture.md) for full module map, security matrix, and data sources.
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | Angular 19, PrimeNG 19, Chart.js, Leaflet |
+| Backend | Java 17, Spring Boot 3.2, Spring Security (JWT), JPA |
+| Database | H2 in-memory (prod demo) · PostgreSQL (Docker Compose) |
+| External APIs | OpenSky (flights), Frankfurter (FX), Open-Meteo (weather), Groq optional (AI) |
+| Deploy | Docker all-in-one JAR · Render · Fly.io · Cloudflare Pages |
+
+---
+
+## Enterprise capabilities
 
 | Capability | Implementation |
 |------------|----------------|
-| Dynamic offers | Generated per OD + travel date (haversine schedules, inventory, fare families) |
-| Live demand | [OpenSky Network](https://opensky-network.org/) ADS-B (free) |
-| FX-aware pricing | [Frankfurter](https://api.frankfurter.app/) ECB EUR→INR (free) |
-| Destination weather | [Open-Meteo](https://api.open-meteo.com/) (free) |
-| RM pricing | Demand × DOW × lead-time × fare-family multipliers |
-| OOSD lifecycle | `PENDING_PAYMENT` → `SETTLED` → `CHECKED_IN` + boarding pass deliver |
-| AI BI | Local retail analyst + optional [Groq](https://console.groq.com/) LLM (`GROQ_API_KEY`) |
-| Analytics | KPI board, revenue trend, OOSD funnel, demand forecast |
-| Security | JWT + enterprise RBAC (ADMIN / ANALYST / CUSTOMER) |
-| Domains | Passenger retail · Hospitality · Cruise · Cargo · Loyalty · AI concierge |
-| API docs | OpenAPI / Swagger UI |
+| OOSD lifecycle | Offer → Order → Settle → Deliver with real status transitions |
+| Dynamic pricing | RM engine: demand × DOW × lead-time × fare family × FX |
+| Live market data | OpenSky ADS-B, Frankfurter EUR→INR, Open-Meteo weather |
+| RBAC | `ADMIN` · `ANALYST` · `CUSTOMER` — separate workspaces |
+| Hospitality / cruise booking | Real reservation APIs persisted to DB (`HTL…` / `CRZ…` refs) |
+| AI retail analyst | Local KPI-grounded insights + optional Groq LLM |
+| API documentation | OpenAPI / Swagger UI at `/swagger-ui.html` |
+| Health | `/api/health` — version + timestamp |
 
-## Architecture
+---
 
-```
-Angular SPA ──REST/JWT──► Spring Boot Modular Monolith
-                          ├ auth
-                          ├ offer (+ dynamic generator)
-                          ├ order / settle / deliver
-                          ├ catalog (airports, ancillaries, CMS)
-                          ├ pricing (RM engine)
-                          ├ analytics (BI KPIs)
-                          ├ ai (insights, NL ask, recommendations)
-                          ├ market (OpenSky + Frankfurter + airports)
-                          └ integration/*
-```
-
-## Quick start
+## Local development
 
 ### Backend
-
 ```bash
 cd backend
 mvn spring-boot:run
 ```
-
-- API: `http://localhost:8080`
-- Swagger: `http://localhost:8080/swagger-ui.html`
-- Health: `http://localhost:8080/api/health`
+- API: http://localhost:8080  
+- Swagger: http://localhost:8080/swagger-ui.html  
+- Health: http://localhost:8080/api/health  
 
 ### Frontend
-
 ```bash
 cd frontend/airbook-ui
 npm install
 npm start
 ```
+- UI: http://localhost:4200  
 
-UI: `http://localhost:4200`
-
-### Docker (all-in-one production image)
-
+### Docker (all-in-one)
 ```bash
 docker build -t ibs-airbook .
-docker run -p 8080:8080 -e GROQ_API_KEY=optional_free_key ibs-airbook
+docker run -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod ibs-airbook
+```
+Open http://localhost:8080
+
+---
+
+## Deployment
+
+**Currently live on Render (free):** https://airbook-glvv.onrender.com
+
+Full instructions: **[docs/deployment.md](docs/deployment.md)**
+
+| Platform | Cost | One URL for UI+API | Notes |
+|----------|------|-------------------|-------|
+| **Render** | Free | Yes | Live now; 30–90s cold start |
+| Fly.io | Trial / paid | Yes | Faster wake; card required after trial |
+| Cloudflare Pages | Free | UI only | Needs separate API backend |
+| Docker local/VPS | Varies | Yes | Best for dev / private demo |
+
+---
+
+## Key API endpoints
+
+| Method | Endpoint | Auth | Purpose |
+|--------|----------|------|---------|
+| POST | `/api/auth/login` | Public | JWT login |
+| GET | `/api/offers/search` | Public | Dynamic flight offers |
+| POST | `/api/orders` | Customer+ | Create booking |
+| POST | `/api/settle` | Customer+ | Payment settlement |
+| POST | `/api/checkin/{ref}` | Customer+ | Web check-in |
+| GET | `/api/platform/stays` | Public | Hotel catalog |
+| POST | `/api/platform/stays/{id}/book` | Auth | Hotel reservation |
+| GET | `/api/analytics/dashboard` | Analyst/Admin | BI KPIs |
+| POST | `/api/ai/ask` | Analyst/Admin | NL retail Q&A |
+| GET | `/api/market/pulse` | Public | FX + weather + demand |
+| GET | `/api/health` | Public | Health check |
+
+Full API list: [docs/architecture.md](docs/architecture.md)
+
+---
+
+## Project structure
+
+```
+IBS-AirBook/
+├── backend/                 # Spring Boot API
+│   └── src/main/java/com/ibs/airbook/
+│       ├── auth/            # JWT + RBAC
+│       ├── offer/ order/ settle/ deliver/   # OOSD
+│       ├── platform/        # Hotels, cruise, cargo, loyalty, concierge
+│       ├── analytics/ ai/   # BI + retail intelligence
+│       ├── market/          # Live tracker + pulse
+│       └── integration/     # OpenSky, Frankfurter, Open-Meteo
+├── frontend/airbook-ui/     # Angular 19 SPA
+├── docs/                    # Architecture, user manual, deployment
+├── Dockerfile               # All-in-one production build
+├── Dockerfile.prod          # Fast CI/Fly build (pre-built static)
+├── render.yaml              # Render Blueprint
+├── fly.toml                 # Fly.io config
+└── scripts/build-all.sh     # Build UI + embed into backend
 ```
 
-Open `http://localhost:8080`
-
-### Optional AI (Groq free tier)
-
-```bash
-export GROQ_API_KEY=gsk_xxx
-```
-
-Without a key, BI still works using the on-box retail analyst (`LOCAL_RETAIL_ANALYST` mode).
-
-## Key API surface
-
-| Method | Endpoint | Notes |
-|--------|----------|-------|
-| GET | `/api/offers/search?origin&destination&travelDate` | Dynamic offers |
-| POST | `/api/orders` | Create order |
-| POST | `/api/settle` | Settle payment |
-| POST | `/api/checkin/{ref}` | Web check-in |
-| GET | `/api/deliver/boarding-pass/{ref}` | Boarding pass |
-| GET | `/api/market/pulse` | Live demand + FX |
-| GET | `/api/market/airports` | 40 airport master |
-| GET | `/api/analytics/dashboard` | BI payload |
-| GET | `/api/ai/insights` | AI insights |
-| POST | `/api/ai/ask` | NL BI Q&A |
-| GET | `/api/ai/demand-forecast` | 7-day demand |
-| GET | `/api/ai/ancillary-recommendations` | Ranked upsell |
-
-## Interview talking points (15 LPA)
-
-1. **Modular monolith** ready for microservice extraction along OOSD boundaries  
-2. **External system integration** with resilience (cache + fallbacks)  
-3. **Revenue management** pricing as a first-class domain service  
-4. **AI for BI** with provider pluggability (local analyst ↔ Groq LLM)  
-5. **Observable retail funnel** — Offer→Order→Settle→Deliver metrics  
+---
 
 ## Author
 

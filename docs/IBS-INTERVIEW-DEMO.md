@@ -4,12 +4,9 @@ Use this script when presenting to a manager or IBS interviewer.
 
 ## Live URL
 
-| Host | URL | Notes |
-|------|-----|-------|
-| **Fly.io (recommended free)** | https://airbook-enterprise.fly.dev | Deploy: `fly deploy` |
-| Render (backup) | https://airbook.onrender.com | Free tier cold-starts 30–90s |
+**https://airbook-glvv.onrender.com** (Render free tier)
 
-First open may take **30–60 seconds** on free hosting — refresh once `/api/health` returns `"status":"UP"`.
+First open may take **30–90 seconds** on free hosting — refresh once `/api/health` returns `"status":"UP"`.
 
 ## Credentials
 

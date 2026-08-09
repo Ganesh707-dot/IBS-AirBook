@@ -1,108 +1,214 @@
-# User Manual — AirBook
+# User Manual — AirBook Enterprise
 
-Demo guide for recruiters and interview walkthroughs.
+Complete guide for demo users, recruiters, and IBS interview walkthroughs.
 
-## Login
-
-| Role | Email | Password | Lands on | Use for |
-|------|-------|----------|----------|---------|
-| Customer | `customer@airbook.com` | `customer123` | `/dashboard` | Search, book, settle, check-in |
-| Analyst | `analyst@airbook.com` | `analyst123` | `/bi` | AI BI dashboards only |
-| Admin | `admin@airbook.com` | `admin123` | `/admin` | Route CMS + AI BI |
+**Live app:** https://airbook-glvv.onrender.com
 
 ---
 
-## Will booking work?
+## 1. Getting started
 
-**Yes.** End-to-end booking works when you are logged in.
+### Login credentials
 
-### Book a flight (customer)
+| Role | Email | Password | After login you land on |
+|------|-------|----------|-------------------------|
+| **Traveler** | `customer@airbook.com` | `customer123` | My Journey (`/dashboard`) |
+| **Analyst** | `analyst@airbook.com` | `analyst123` | Retail Intelligence (`/bi`) |
+| **Admin** | `admin@airbook.com` | `admin123` | Ops CMS (`/admin`) |
 
-1. Open **Login** → sign in as `customer@airbook.com` / `customer123`
+### First visit tip (free hosting)
+
+If the page loads slowly or shows a spinner for 30–90 seconds, **wait and refresh once**. Free Render tier wakes the server on first request.
+
+### Logout
+
+Click your name / **Sign out** in the top navigation bar.
+
+---
+
+## 2. Navigation overview
+
+The top bar includes a **Solutions** mega-menu:
+
+| Menu item | Route | Who can access |
+|-----------|-------|----------------|
+| Home | `/` | Everyone |
+| Flights | `/search` | Everyone |
+| Hotels | `/stays` | Everyone |
+| Cruise | `/cruise` | Everyone |
+| Cargo | `/cargo` | Everyone |
+| Loyalty | `/loyalty` | Everyone |
+| AI Concierge | `/concierge` | Everyone (ask requires login) |
+| Live Tracker | `/tracker` | Everyone |
+| My Journey | `/dashboard` | Logged-in travelers |
+| My Trips | `/bookings` | Logged-in travelers |
+| Check-in | `/checkin` | Logged-in travelers |
+| Retail Intelligence | `/bi` | Analyst + Admin |
+| Ops CMS | `/admin` | Admin only |
+
+---
+
+## 3. Traveler workflow (Customer role)
+
+### 3.1 Book a flight
+
+1. Login as `customer@airbook.com` / `customer123`
 2. Go to **Flights**
-3. Choose **From / To / Travel date** → **Search flights**
+3. Enter **From**, **To**, **Travel date** → **Search flights**
 4. Click **Book** on any offer
-5. Complete the wizard:
-   - **Passengers** — name, email, pax count  
-   - **Extras** — AI-ranked ancillaries (baggage, meal, lounge, …)  
-   - **Payment** — Card / UPI / Wallet → **Pay & confirm**
-6. You get a **booking reference** + **payment ID** (status = SETTLED)
-7. Open **My Trips** to see the booking
-8. Open **Check-in** → enter reference → get a **boarding pass**
+5. Complete the booking wizard:
+   - **Passengers** — full name, email, passenger count
+   - **Extras** — select AI-ranked ancillaries (baggage, meal, lounge, etc.)
+   - **Payment** — choose Card / UPI / Wallet → **Pay & confirm**
+6. Note your **booking reference** (e.g. `AB…`) and **payment ID**
+7. Open **My Trips** to see the booking with status **SETTLED**
 
-### If booking fails
+### 3.2 Web check-in
 
-- Make sure you are **logged in** (JWT required)
-- Fill passenger **name** and valid **email**
-- Backend must be running (`/api/health` should return `UP`)
+1. Go to **Check-in**
+2. Enter your booking reference
+3. Click **Check in**
+4. View / download **boarding pass** details
 
----
+### 3.3 Reserve a hotel
 
-## What is AI used for?
+1. Go to **Hotels**
+2. Browse properties (Dubai, Maldives, Paris, etc.)
+3. Click **Reserve** on a property
+4. Confirmation shows reference `HTL…`
+5. View on **My Journey** dashboard alongside flight trips
 
-AI helps with **business intelligence and personalization**, not with drawing the flight map.
+### 3.4 Book a cruise
 
-| Where in UI | What AI does for you |
-|-------------|----------------------|
-| **Flights → Book → Extras** | Ranks which ancillaries to upsell for that route/cabin |
-| **AI BI** page | Shows insights (revenue, settlement, attach rate, demand) |
-| **AI BI → Ask the Retail Analyst** | Ask questions in English, e.g. “How is settlement converting?” |
-| **AI BI → Demand forecast** | Shows 7-day demand outlook for an OD (e.g. COK–DXB) |
+1. Go to **Cruise**
+2. Browse packages (Arabian Gulf, Mediterranean, etc.)
+3. Click **Reserve**
+4. Confirmation shows reference `CRZ…`
 
-### Modes
+### 3.5 AI Concierge
 
-- **Without any AI key:** local retail analyst still works (`LOCAL_RETAIL_ANALYST`)
-- **With free Groq key (`GROQ_API_KEY`):** richer LLM answers (`GROQ_LLM`)
+1. Go to **AI Concierge**
+2. Ask travel questions, e.g.:
+   - "What hotels do you recommend in Dubai?"
+   - "My flight is delayed — what are my options?"
+   - "How does loyalty work?"
+3. Answers are domain-aware (hotels, cruise, cargo, disruption, loyalty)
 
-AI does **not** invent live aircraft positions — that comes from OpenSky.
+### 3.6 Live Flight Tracker
 
----
+1. Go to **Live Tracker**
+2. Select corridor origin/destination → **Track corridor**
+3. Map shows real ADS-B aircraft from OpenSky when API allows
 
-## Live Flight Tracker
-
-1. Open **Live Tracker**
-2. Pick corridor origin/destination → **Track corridor**
-3. Map + aircraft list show **real ADS-B flights** from OpenSky when the free API allows it
-
-**Free API:** https://opensky-network.org/api/states/all  
-
-If you see “too many requests” / no flights: OpenSky free tier is rate-limiting. Wait 1–5 minutes → **Refresh**. This is **not** a booking bug.
-
----
-
-## AI BI Command Center
-
-1. Login as **admin** or **analyst**
-2. Open **AI BI**
-3. Review KPIs (GMV, orders, settle %, check-in %, ancillary attach)
-4. Read **AI Insights**
-5. Ask a question in **Ask the Retail Analyst**
-6. Run a **Demand forecast** for any OD
+**If map is empty:** OpenSky free tier may be rate-limiting. Wait 1–5 minutes and refresh. Booking does **not** depend on OpenSky.
 
 ---
 
-## Admin CMS
+## 4. Analyst workflow (Analyst role)
 
-1. Login as `admin@airbook.com`
-2. Open **Admin**
-3. Add / view routes in the catalog
+### 4.1 Retail Intelligence dashboard
+
+1. Login as `analyst@airbook.com` / `analyst123`
+2. You land on **Retail Intelligence** (`/bi`)
+3. Review:
+   - **KPI cards** — GMV, orders, settlement %, check-in %, ancillary attach
+   - **Revenue trend** chart
+   - **Top routes** table
+   - **OOSD funnel** — Offer → Order → Settle → Deliver conversion
+
+### 4.2 AI insights
+
+Scroll to **AI Insights** — auto-generated narratives on retail performance grounded in live KPI data.
+
+### 4.3 Ask the Retail Analyst
+
+Type natural-language questions, e.g.:
+- "How is ancillary attach performing?"
+- "Which routes drive the most revenue?"
+- "What is the settlement conversion rate?"
+
+### 4.4 Demand forecast
+
+Enter an origin-destination pair (e.g. `COK` → `DXB`) and run forecast. Shows 7-day demand index with pricing bias (`YIELD_UP`, `HOLD`, `STIMULATE`).
+
+### What Analyst cannot do
+
+- Cannot access **Ops CMS** (`/admin`) — Admin only
+- Cannot modify route catalog
 
 ---
 
-## Speed tip
+## 5. Admin workflow (Admin role)
 
-Search and booking stay fast even if OpenSky is rate-limited. Live Tracker may show empty until OpenSky recovers — booking does **not** depend on it.
+### 5.1 Ops CMS — Route catalog
 
-## Suggested 3-minute interview demo
+1. Login as `admin@airbook.com` / `admin123`
+2. Go to **Ops CMS** (`/admin`)
+3. View existing routes in the catalog table
+4. Click **Add route** to create new origin-destination entries
+5. Use **Refresh** to reload data
 
-1. **Home** → search COK → DXB  
-2. **Book** a flight with an ancillary → show payment confirmation  
-3. **Check-in** → show boarding pass  
-4. **Live Tracker** → explain OpenSky free ADS-B (and rate limits)  
-5. **AI BI** (admin) → show KPIs + ask “Where should we push yield?”  
+### 5.2 Retail Intelligence
+
+Admin also has full access to **Retail Intelligence** (`/bi`) — same as Analyst.
 
 ---
 
-## Technical docs
+## 6. Public pages (no login required)
 
-See [architecture.md](./architecture.md) for module map, APIs, and AI design.
+| Page | What you can do without login |
+|------|-------------------------------|
+| Home | Browse platform overview, quick search |
+| Flights | Search offers (login required to book) |
+| Hotels / Cruise / Cargo / Loyalty | Browse catalogs |
+| Live Tracker | View live flights map |
+| AI Concierge | View page (login required to ask) |
+
+---
+
+## 7. Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| Page loads forever | Wait 60s, refresh — free tier cold start |
+| Login fails | Check email/password; ensure backend is up (`/api/health` → `"status":"UP"`) |
+| Booking fails | Must be logged in; fill passenger name + valid email |
+| BI page redirects to login | Use `analyst@airbook.com` or `admin@airbook.com` |
+| Admin page blocked | Use `admin@airbook.com` only |
+| Live tracker empty | OpenSky rate limit — wait and refresh |
+| Hotel/cruise reserve fails | Login first |
+
+### Health check
+
+Open: https://airbook-glvv.onrender.com/api/health
+
+Expected:
+```json
+{"status":"UP","service":"AirBook Enterprise API","version":"2.2.0","timestamp":"..."}
+```
+
+---
+
+## 8. Suggested demo scripts
+
+### 3-minute recruiter demo
+
+1. **Home** → show enterprise layout + Solutions menu
+2. **Flights** → search `COK` → `DXB` → book with ancillary → payment confirm
+3. **Hotels** → reserve a property → show `HTL…` reference
+4. **Check-in** → boarding pass
+5. **Retail Intelligence** (analyst login) → KPIs + ask one AI question
+
+### 5-minute IBS interview demo
+
+See [IBS-INTERVIEW-DEMO.md](./IBS-INTERVIEW-DEMO.md) for the full script covering all domains and RBAC.
+
+---
+
+## 9. Related documentation
+
+| Document | Contents |
+|----------|----------|
+| [architecture.md](./architecture.md) | Technical design, APIs, RBAC matrix |
+| [deployment.md](./deployment.md) | How to deploy locally or to cloud |
+| [IBS-INTERVIEW-DEMO.md](./IBS-INTERVIEW-DEMO.md) | Manager presentation script |

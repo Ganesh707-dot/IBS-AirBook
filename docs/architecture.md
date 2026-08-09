@@ -1,135 +1,318 @@
-# Architecture — AirBook
+# Software Architecture — AirBook Enterprise
 
-Enterprise airline retail platform modeled on IBS Software **Offer → Order → Settle → Deliver (OOSD)**.
+Enterprise travel commerce platform modeled on **IBS Software** modular domains and **Offer → Order → Settle → Deliver (OOSD)** airline retail patterns.
 
-## Stack
+---
 
-| Layer | Tech |
-|-------|------|
-| UI | Angular 19 + **PrimeNG 19** (Aura) + Chart.js + Leaflet |
-| API | Java 17, Spring Boot 3.2, Security (JWT), JPA |
-| DB | H2 (local/prod demo) · PostgreSQL (Docker profile) |
-| Deploy | Single JAR/Docker image (SPA served from Spring `static/`) |
+## 1. System overview
 
-## Technical structure
+AirBook is a **modular monolith**: one deployable unit (JAR/Docker) with clear domain boundaries that could be extracted into microservices later.
 
 ```
-IBS-AirBook/
-├── backend/src/main/java/com/ibs/airbook/
-│   ├── auth/           # Login, JWT, RBAC (ADMIN / ANALYST / CUSTOMER)
-│   ├── offer/          # Dynamic flight offer search & inventory
-│   ├── order/          # Create booking, list trips, check-in gate
-│   ├── settle/         # Payment settlement (mock PSP)
-│   ├── deliver/        # Boarding pass delivery
-│   ├── catalog/        # Airports, ancillaries, admin CMS
-│   ├── pricing/        # Revenue-management style dynamic pricing
-│   ├── analytics/      # BI KPIs, revenue trend, OOSD funnel
-│   ├── ai/             # AI retail analyst (insights, NL ask, recommendations)
-│   ├── market/         # Live tracker feed, market pulse, airports
-│   ├── integration/
-│   │   ├── opensky/    # Free ADS-B live traffic client
-│   │   └── fx/         # Frankfurter ECB FX client
-│   ├── config/         # Security, SPA, cache, data seed
-│   └── common/         # Exception handling
-├── frontend/airbook-ui/src/app/
-│   ├── core/           # API + auth services, interceptor, guard
-│   └── features/       # home, search (booking wizard), tracker, bookings,
-│                       # checkin, bi, admin, login
-├── docs/
-│   ├── architecture.md # this file
-│   └── user-manual.md  # end-user / demo guide
-├── Dockerfile          # all-in-one production build
-└── render.yaml         # free-host blueprint
+                    ┌──────────────────────────────────────┐
+                    │         Browser (Angular 19 SPA)        │
+                    │  PrimeNG · Chart.js · Leaflet         │
+                    └─────────────────┬────────────────────┘
+                                      │ HTTPS
+                                      │ /api/*  REST + JWT Bearer
+                    ┌─────────────────▼────────────────────┐
+                    │     Spring Boot 3.2 (Java 17)         │
+                    │  ┌──────────────────────────────────┐ │
+                    │  │ SecurityFilterChain + JwtAuthFilter│ │
+                    │  └──────────────────────────────────┘ │
+                    │  Controllers → Services → Repositories  │
+                    │  H2 (prod) / PostgreSQL (docker)        │
+                    └─────────────────┬────────────────────┘
+                                      │
+              ┌───────────────────────┼───────────────────────┐
+              │                       │                       │
+        OpenSky Network        Frankfurter API           Open-Meteo
+        (live flights)         (EUR→INR FX)              (weather)
+              │                       │                       │
+        Groq API (optional)     Demo catalog data      Seeded orders
+        (LLM BI answers)        (hotels/cruise/cargo)  (analytics)
 ```
 
-## Booking works — full OOSD flow
+**Production deploy:** Angular build is embedded in `backend/src/main/resources/static/` and served by Spring Boot. SPA routing falls back to `index.html` via `SpaWebConfig`.
 
-Yes. Booking is a **real API workflow**, not a UI mock:
+---
+
+## 2. Technology stack
+
+| Layer | Technology | Version |
+|-------|------------|---------|
+| UI framework | Angular | 19 |
+| UI components | PrimeNG + PrimeIcons | 19 |
+| Charts / maps | Chart.js, Leaflet | — |
+| API | Spring Boot | 3.2.5 |
+| Language | Java | 17 |
+| Security | Spring Security + JWT (jjwt) | — |
+| Persistence | Spring Data JPA | — |
+| Database | H2 (mem, prod demo) / PostgreSQL (docker) | — |
+| Cache | Caffeine | — |
+| API docs | SpringDoc OpenAPI | — |
+| Build | Maven (backend), npm (frontend) | — |
+| Container | Docker multi-stage | — |
+
+---
+
+## 3. Backend module map
 
 ```
-1. OFFER   GET  /api/offers/search?origin&destination&travelDate
-2. ORDER   POST /api/orders          → status PENDING_PAYMENT
-3. SETTLE  POST /api/settle          → status SETTLED + paymentId
-4. DELIVER POST /api/checkin/{ref}   → status CHECKED_IN
-           GET  /api/deliver/boarding-pass/{ref}
+backend/src/main/java/com/ibs/airbook/
+├── AirBookApplication.java
+├── auth/
+│   ├── User.java              # Roles: ADMIN, ANALYST, CUSTOMER
+│   ├── AuthController.java    # POST /api/auth/login, GET /api/auth/me
+│   ├── JwtAuthFilter.java
+│   └── CustomUserDetailsService.java
+├── offer/
+│   ├── OfferController.java   # GET /api/offers/search, /{id}
+│   ├── OfferService.java      # Dynamic route generation + inventory
+│   └── Route.java / RouteRepository.java
+├── order/
+│   ├── OrderController.java   # POST /api/orders, GET /api/orders, /api/health
+│   └── OrderService.java      # OOSD order creation, check-in
+├── settle/
+│   └── SettleController.java  # POST /api/settle
+├── deliver/
+│   └── DeliverController.java # GET /api/deliver/boarding-pass/{ref}
+├── catalog/
+│   └── CatalogController.java # GET/POST /api/catalog/routes, ancillaries
+├── pricing/
+│   └── DynamicPricingService.java  # RM: demand × DOW × lead-time × FX
+├── analytics/
+│   └── AnalyticsController.java    # /api/analytics/kpis, dashboard, funnel
+├── ai/
+│   ├── AiController.java      # insights, ask, recommendations, forecast
+│   └── AiBiService.java       # Local analyst + optional Groq LLM
+├── market/
+│   └── MarketController.java  # pulse, live-flights, airports
+├── platform/
+│   ├── PlatformController.java   # stays, cruises, cargo, loyalty, concierge
+│   ├── PlatformService.java      # Demo catalog + booking logic
+│   └── PlatformReservation.java  # Hotel/cruise reservations in DB
+├── integration/
+│   ├── opensky/OpenSkyClient.java
+│   ├── fx/FrankfurterClient.java
+│   └── weather/OpenMeteoClient.java
+└── config/
+    ├── SecurityConfig.java    # RBAC rules
+    ├── SpaWebConfig.java      # SPA fallback routing
+    ├── DataInitializer.java   # Async demo seed (prod fast-start)
+    └── CacheConfig.java
 ```
 
-UI path: **Flights → Book → multi-step wizard (Passengers → Extras → Pay) → My Trips / Check-in**.
+---
 
-Login required for Order/Settle/Deliver (`customer@airbook.com` / `customer123`).
+## 4. Frontend module map
 
-## Where AI is used
+```
+frontend/airbook-ui/src/app/
+├── core/
+│   ├── services/
+│   │   ├── api.service.ts       # All REST calls
+│   │   └── auth.service.ts      # JWT, role signal, /me sync
+│   ├── guards/
+│   │   └── auth.guard.ts        # authGuard + roleGuard
+│   └── interceptors/
+│       └── auth.interceptor.ts  # Bearer token injection
+├── app.component.ts             # Enterprise shell, Solutions mega-menu
+├── app.routes.ts                # Role-based routing
+└── features/
+    ├── home/                    # Landing + IBS-style hero
+    ├── search/                  # Flight search + booking wizard
+    ├── stays/                   # Hotels — reserve via API
+    ├── cruise/                  # Cruise packages — book via API
+    ├── cargo/                   # Cargo lane catalog
+    ├── loyalty/                 # Loyalty tiers + partners
+    ├── concierge/               # AI tourist assistance
+    ├── tracker/                 # OpenSky live map
+    ├── dashboard/               # Customer portal
+    ├── bookings/                # My trips (flights + reservations)
+    ├── checkin/                 # Web check-in + boarding pass
+    ├── bi/                      # Analyst BI command center
+    ├── admin/                   # Route CMS
+    └── login/                   # Role-based redirect after login
+```
 
-AI is **not** used to invent flight schedules. It is used for **retail intelligence / BI / personalization**:
+---
 
-| Feature | Endpoint | What it does |
-|---------|----------|--------------|
-| AI Insights | `GET /api/ai/insights` | Auto narratives on GMV, settlement %, ancillary attach, demand, check-in |
-| Ask analyst | `POST /api/ai/ask` | Natural-language BI Q&A (“How is ancillary attach?”) |
-| Ancillary ranking | `GET /api/ai/ancillary-recommendations` | Scores upsell SKUs per OD + fare family during booking |
-| Demand forecast | `GET /api/ai/demand-forecast` | 7-day demand index + pricing bias (YIELD_UP / HOLD / STIMULATE) |
+## 5. OOSD booking flow (passenger retail)
+
+Real API workflow — not a UI mock:
+
+```
+1. OFFER   GET  /api/offers/search?origin=DXB&destination=COK&travelDate=2026-09-01
+           → DynamicPricingService generates fares per inventory
+
+2. ORDER   POST /api/orders
+           Body: { offerId, passengers[], ancillaries[] }
+           → status: PENDING_PAYMENT, bookingRef: AB...
+
+3. SETTLE  POST /api/settle
+           Body: { orderRef, method: "CARD"|"UPI"|"WALLET" }
+           → status: SETTLED, paymentId assigned
+
+4. DELIVER POST /api/checkin/{ref}
+           → status: CHECKED_IN
+           GET  /api/deliver/boarding-pass/{ref} → boarding pass JSON
+```
+
+**UI path:** Flights → Search → Book wizard (Passengers → Extras → Pay) → My Trips → Check-in
+
+---
+
+## 6. Platform commerce (hospitality, cruise, cargo, loyalty)
+
+| Domain | Read API | Write API | Data source |
+|--------|----------|-----------|-------------|
+| Hotels | `GET /api/platform/stays` | `POST /api/platform/stays/{id}/book` | Curated demo inventory in `PlatformService` |
+| Cruise | `GET /api/platform/cruises` | `POST /api/platform/cruises/{id}/book` | Curated demo inventory |
+| Cargo | `GET /api/platform/cargo/lanes` | — | Demo lane catalog |
+| Loyalty | `GET /api/platform/loyalty`, `/tiers`, `/partners` | — | Demo program data |
+| Concierge | — | `POST /api/platform/concierge/ask` | Rule-based + domain context |
+| Reservations | `GET /api/platform/reservations` | (via book endpoints) | `PlatformReservation` entity in DB |
+
+Hotel/cruise **booking is real** — creates persisted reservations with `HTL…` / `CRZ…` reference codes shown on customer dashboard.
+
+---
+
+## 7. Security & RBAC
+
+### Roles
+
+| Role | Persona | Default landing |
+|------|---------|-----------------|
+| `CUSTOMER` | Traveler | `/dashboard` |
+| `ANALYST` | Retail BI analyst | `/bi` |
+| `ADMIN` | Platform ops | `/admin` |
+
+### Endpoint access matrix
+
+| Path pattern | CUSTOMER | ANALYST | ADMIN | Public |
+|--------------|----------|---------|-------|--------|
+| `/api/auth/login`, `/api/health` | — | — | — | ✓ |
+| `/api/offers/**`, `/api/market/**` | — | — | — | ✓ |
+| `/api/platform/solutions`, stays, cruises, cargo, loyalty | — | — | — | ✓ |
+| `/api/orders`, `/api/settle`, `/api/checkin/**` | ✓ | ✓ | ✓ | — |
+| `/api/ai/ancillary-recommendations` | ✓ | ✓ | ✓ | — |
+| `/api/analytics/**`, `/api/ai/**` (except ancillary) | — | ✓ | ✓ | — |
+| `/api/catalog/**` (CMS mutations) | — | — | ✓ | — |
+| `/api/platform/concierge/ask`, reservations, book | ✓ | ✓ | ✓ | — |
+
+### Frontend guards
+
+- `authGuard` — requires JWT for protected routes
+- `roleGuard(['ANALYST', 'ADMIN'])` — BI routes
+- `roleGuard(['ADMIN'])` — CMS routes
+- `auth.service.ts` calls `GET /api/auth/me` on boot to sync role if stale token
+
+---
+
+## 8. AI & analytics design
+
+### AI features
+
+| Feature | Endpoint | Mode |
+|---------|----------|------|
+| Auto insights | `GET /api/ai/insights` | LOCAL_RETAIL_ANALYST |
+| NL Q&A | `POST /api/ai/ask` | LOCAL or GROQ_LLM |
+| Ancillary ranking | `GET /api/ai/ancillary-recommendations` | Scoring model |
+| Demand forecast | `GET /api/ai/demand-forecast` | KPI + OpenSky demand |
+| Concierge | `POST /api/platform/concierge/ask` | Domain-aware rules |
 
 ### AI modes
 
-1. **`LOCAL_RETAIL_ANALYST` (default, always on)**  
-   Deterministic analyst grounded in live KPIs + OpenSky demand signals. No API key needed.
+1. **`LOCAL_RETAIL_ANALYST`** (default, no API key) — deterministic answers grounded in live KPIs
+2. **`GROQ_LLM`** (optional) — set `GROQ_API_KEY` for generative NL answers via Groq free tier
 
-2. **`GROQ_LLM` (optional)**  
-   If `GROQ_API_KEY` is set, NL answers are generated by Groq’s free Llama model, still grounded on the same KPI context.
+### Analytics
 
-### What AI does *not* do
+| Endpoint | Payload |
+|----------|---------|
+| `GET /api/analytics/dashboard` | KPIs + revenue trend + top routes + OOSD funnel |
+| `GET /api/analytics/kpis` | GMV, orders, settle %, check-in %, ancillary attach |
 
-- Does not replace OpenSky for live aircraft positions  
-- Does not invent airport master data  
-- Does not process card payments (Settle is a mock PSP for demo)
+Demo orders are seeded on startup (async in prod) to populate BI charts.
 
-## External free APIs
+---
 
-| API | URL | Used for |
-|-----|-----|----------|
-| OpenSky Network | https://opensky-network.org/api/states/all | Live tracker + corridor demand score (may rate-limit; not a booking bug) |
-| Frankfurter (ECB) | https://api.frankfurter.app/latest | EUR→INR FX for dynamic fares |
-| Groq (optional) | https://api.groq.com | Generative BI answers |
+## 9. External integrations
 
-## Dynamic offer / pricing flow
+| Integration | API | Used for | Fallback |
+|-------------|-----|----------|----------|
+| OpenSky Network | `opensky-network.org/api/states/all` | Live tracker, demand score | Cached / empty state |
+| Frankfurter | `api.frankfurter.app/latest` | EUR→INR FX in pricing | Static rate |
+| Open-Meteo | `api.open-meteo.com/v1/forecast` | Destination weather in market pulse | Omitted |
+| Groq (optional) | `api.groq.com/openai/v1/chat/completions` | LLM BI narratives | Local analyst |
+
+All external calls are cached (Caffeine, 5 min TTL) to reduce rate-limit impact.
+
+---
+
+## 10. Dynamic pricing pipeline
 
 ```
-UI search(OD, date)
-  → OfferService
-     → validate airports
-     → generate inventory if OD/date empty (haversine duration)
-     → DynamicPricingService
-          → OpenSky demand score
-          → Frankfurter FX
-          → DOW + lead-time + fare family
-     → persist Route rows
-  → OfferResponse[]
+OfferService.search(origin, destination, date)
+  → validate airports (AirportRepository — 40 IATA codes)
+  → generate Route inventory if empty (haversine block time)
+  → DynamicPricingService.price(route, date, cabin)
+       → OpenSkyClient.demandScore(origin, destination)
+       → FrankfurterClient.eurToInr()
+       → DOW multiplier + lead-time multiplier + fare family multiplier
+  → persist Route rows
+  → return OfferResponse[]
 ```
 
-## Security
+---
 
-- JWT bearer auth  
-- Roles: `CUSTOMER`, `ANALYST`, `ADMIN` (enterprise RBAC)  
-- Public: offers search, ancillaries list, market/tracker  
-- Authenticated: orders, settle, check-in, ancillary recommendations  
-- Analyst + Admin: analytics dashboard, AI insights / ask / demand forecast  
-- Admin only: catalog CMS (`/api/catalog/routes`)  
-- Frontend: `authGuard` + `roleGuard` — `/dashboard` (customer), `/bi` (analyst/admin), `/admin` (admin)
+## 11. Data layer
 
-## UI modules (PrimeNG)
+| Profile | Database | DDL | Notes |
+|---------|----------|-----|-------|
+| default (dev) | H2 in-memory | create-drop | H2 console enabled |
+| `prod` | H2 in-memory | create-drop | Fast demo deploy; async seed |
+| `docker` | PostgreSQL 15 | update | Persistent via Docker Compose |
 
-| Route | Purpose | Roles |
-|-------|---------|-------|
-| `/` | Hero + quick search | Public |
-| `/search` | Offers + booking wizard | Public / auth to book |
-| `/tracker` | Live OpenSky map tracker | Public |
-| `/dashboard` | Customer portal | CUSTOMER |
-| `/bookings` | My trips | CUSTOMER |
-| `/checkin` | Check-in + boarding pass | CUSTOMER |
-| `/bi` | AI BI command center | ANALYST, ADMIN |
-| `/admin` | Route CMS | ADMIN |
-| `/login` | JWT login (role-based redirect) | Public |
+### Demo seed (DataInitializer)
 
-## Deployment
+- Upserts 3 demo users (admin, customer, analyst) every boot
+- Seeds 40 airports, ancillaries, demo orders for BI
+- Prod: `warm-markets: false`, `demo-orders: 8` for fast Render startup
+- Seeding runs **async** after `ApplicationReadyEvent` so health checks pass quickly
 
-Single Docker/JAR serves Angular from Spring Boot (`/`) and APIs under `/api/**`.
+---
+
+## 12. Deployment architecture
+
+```
+GitHub (main)
+    │
+    ├── Render Blueprint (render.yaml)
+    │       └── Docker build (Dockerfile) → https://airbook-glvv.onrender.com
+    │
+    ├── Fly.io (fly.toml + Dockerfile.prod)
+    │       └── GitHub Actions (FLY_API_TOKEN) → https://airbook-enterprise.fly.dev
+    │
+    └── Cloudflare Pages (frontend only)
+            └── /api/* proxied to backend via Pages Function
+```
+
+Single JAR serves:
+- Static Angular at `/`, `/search`, `/bi`, etc.
+- REST API at `/api/**`
+- Swagger at `/swagger-ui.html`
+
+See [deployment.md](./deployment.md) for step-by-step instructions.
+
+---
+
+## 13. Design decisions (interview talking points)
+
+1. **Modular monolith** — OOSD boundaries map 1:1 to packages; ready for service extraction
+2. **API-first** — all UI data from `/api/*`; no hardcoded catalogs in Angular
+3. **Resilient integrations** — cache + graceful degradation when OpenSky rate-limits
+4. **Enterprise RBAC** — three distinct workspaces, not shared dashboards
+5. **Pluggable AI** — local analyst always works; Groq is optional enhancement
+6. **Free-tier deploy aware** — async seed, reduced JVM heap (256MB), prod fast-start tuning

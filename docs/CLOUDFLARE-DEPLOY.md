@@ -1,21 +1,17 @@
 # Cloudflare Pages — shareable URL for users
 
-One link for everyone: **https://airbook-enterprise.pages.dev**
+One link for everyone: **https://ibs-airbook.pages.dev** (after Cloudflare deploy)
 
 - UI on Cloudflare CDN (instant load for users)
-- API proxied via `/api/*` to Fly.io backend
+- API proxied via `/api/*` to Render backend
 
-## Step 1 — Backend (Fly.io, free)
+## Step 1 — Backend (Render, free — already live)
 
-```bash
-fly auth login
-cd IBS-AirBook
-fly launch --no-deploy
-fly secrets set JWT_SECRET="your-long-random-secret"
-fly deploy
-```
+Live backend: **https://airbook-glvv.onrender.com**
 
-Test: https://airbook-enterprise.fly.dev/api/health → `"status":"UP"`
+Test: https://airbook-glvv.onrender.com/api/health → `"status":"UP"`
+
+If you need to redeploy backend, see [deployment.md](./deployment.md#5-render-free-recommended--live-now).
 
 ## Step 2 — Cloudflare Pages
 
@@ -29,7 +25,7 @@ Test: https://airbook-enterprise.fly.dev/api/health → `"status":"UP"`
 | Build command | `npm ci && npm run build` |
 | Build output | `dist/airbook-ui/browser` |
 
-4. Environment variable: `API_ORIGIN` = `https://airbook-enterprise.fly.dev`
+4. Environment variable: `API_ORIGIN` = `https://airbook-glvv.onrender.com`
 
 5. Deploy → share **https://airbook-enterprise.pages.dev**
 
