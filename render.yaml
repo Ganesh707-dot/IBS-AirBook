@@ -1,8 +1,9 @@
 services:
   - type: web
-    name: ibs-airbook
+    name: airbook
     runtime: docker
     plan: free
+    region: singapore
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /api/health
