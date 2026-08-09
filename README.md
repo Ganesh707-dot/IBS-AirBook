@@ -1,21 +1,17 @@
 # AirBook Enterprise — IBS Interview Demo Platform
 
-> **Recommended (free):** https://airbook-enterprise.fly.dev — deploy with `fly deploy`  
-> **Backup:** https://airbook.onrender.com (cold start 30–90s on free tier)  
-> **Repository:** https://github.com/Ganesh707-dot/IBS-AirBook  
-> **Interview script:** [docs/IBS-INTERVIEW-DEMO.md](docs/IBS-INTERVIEW-DEMO.md)
+> **Share this URL with users (recommended):** https://airbook-enterprise.pages.dev  
+> **Backend API:** https://airbook-enterprise.fly.dev  
+> **Setup guide:** [docs/CLOUDFLARE-DEPLOY.md](docs/CLOUDFLARE-DEPLOY.md)  
+> **Repository:** https://github.com/Ganesh707-dot/IBS-AirBook
 
-Modular airline + hospitality platform for IBS interviews: OOSD passenger retail, hospitality/cruise, cargo, loyalty, AI concierge, analyst BI — with **real free APIs** (OpenSky, Frankfurter, Open-Meteo).
+**Cloudflare Pages** = fast UI for all users. **Fly.io** = free Java API backend. One link, no Render cold-start issues.
 
-## Free deploy
+## Quick deploy (free)
 
-| Platform | How | URL |
-|----------|-----|-----|
-| **Fly.io** (best free) | `fly auth login && fly deploy` | airbook-enterprise.fly.dev |
-| Render | Blueprint from repo | airbook.onrender.com |
-| Local | `docker build -t airbook . && docker run -p 8080:8080 airbook` | localhost:8080 |
-
-> Free tiers sleep when idle. First open may take **30–60s** — wait for `/api/health` → `"status":"UP"`.
+1. **Backend:** `fly auth login && fly deploy` → https://airbook-enterprise.fly.dev/api/health  
+2. **Frontend:** Cloudflare Pages → connect GitHub → root `frontend/airbook-ui` → set `API_ORIGIN`  
+3. **Share:** https://airbook-enterprise.pages.dev
 
 ## Manager / IBS demo (2 min)
 
@@ -31,6 +27,7 @@ Full script: **[docs/IBS-INTERVIEW-DEMO.md](docs/IBS-INTERVIEW-DEMO.md)**
 
 - [Technical architecture](docs/architecture.md) — modules, booking APIs, AI design  
 - [User manual](docs/user-manual.md) — how to book, tracker, AI BI demo script  
+- [Cloudflare Pages deploy](docs/CLOUDFLARE-DEPLOY.md) — **shareable URL for users**  
 - [Deployment guide](docs/deployment.md) — local, Docker, Fly.io, Render  
 - [IBS interview demo script](docs/IBS-INTERVIEW-DEMO.md) — 5-minute manager walkthrough
 

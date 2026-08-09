@@ -1,0 +1,7 @@
+name = "airbook-enterprise"
+compatibility_date = "2024-08-01"
+pages_build_output_dir = "./dist/airbook-ui/browser"
+
+[vars]
+# Set your backend URL in Cloudflare Dashboard → Pages → Settings → Variables
+API_ORIGIN = "https://airbook-enterprise.fly.dev"
