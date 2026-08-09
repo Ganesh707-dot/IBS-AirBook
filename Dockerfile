@@ -4,6 +4,7 @@ WORKDIR /ui
 COPY frontend/airbook-ui/package.json frontend/airbook-ui/package-lock.json ./
 RUN npm ci --prefer-offline --no-audit --no-fund
 COPY frontend/airbook-ui/angular.json frontend/airbook-ui/tsconfig.json frontend/airbook-ui/tsconfig.app.json ./
+COPY frontend/airbook-ui/public ./public
 COPY frontend/airbook-ui/src ./src
 RUN npm run build
 
@@ -19,7 +20,7 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 RUN apk add --no-cache wget
 ENV SPRING_PROFILES_ACTIVE=prod
-ENV JAVA_OPTS="-XX:+UseContainerSupport -Xms128m -Xmx384m -Djava.security.egd=file:/dev/./urandom"
+ENV JAVA_OPTS="-XX:+UseContainerSupport -Xms64m -Xmx256m -XX:MaxMetaspaceSize=128m -Djava.security.egd=file:/dev/./urandom"
 COPY --from=backend-build /app/target/airbook-api-1.0.0.jar app.jar
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=8s --start-period=120s --retries=3 \

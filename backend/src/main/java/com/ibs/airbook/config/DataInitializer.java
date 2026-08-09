@@ -13,7 +13,8 @@ import com.ibs.airbook.order.Order;
 import com.ibs.airbook.order.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -21,12 +22,13 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DataInitializer implements CommandLineRunner {
+public class DataInitializer {
 
     private final UserRepository userRepository;
     private final AirportRepository airportRepository;
@@ -42,19 +44,22 @@ public class DataInitializer implements CommandLineRunner {
     @org.springframework.beans.factory.annotation.Value("${airbook.seed.demo-orders:48}")
     private int demoOrders;
 
-    @Override
-    public void run(String... args) {
-        seedUsers();
-        seedAirports();
-        seedAncillaries();
-        if (warmMarkets) {
-            warmPopularMarkets();
-        } else {
-            log.info("Skipping market warm-up (prod fast-start)");
-        }
-        simulateRetailHistory();
-        log.info("AirBook enterprise data plane ready — airports={}, routes={}, orders={}",
-                airportRepository.count(), routeRepository.count(), orderRepository.count());
+    /** Seed in background so Render health checks pass before demo data finishes loading. */
+    @EventListener(ApplicationReadyEvent.class)
+    public void seedAsync() {
+        CompletableFuture.runAsync(() -> {
+            seedUsers();
+            seedAirports();
+            seedAncillaries();
+            if (warmMarkets) {
+                warmPopularMarkets();
+            } else {
+                log.info("Skipping market warm-up (prod fast-start)");
+            }
+            simulateRetailHistory();
+            log.info("AirBook enterprise data plane ready — airports={}, routes={}, orders={}",
+                    airportRepository.count(), routeRepository.count(), orderRepository.count());
+        });
     }
 
     private void seedUsers() {
