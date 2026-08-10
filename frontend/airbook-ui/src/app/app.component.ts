@@ -206,7 +206,7 @@ import { AuthService } from './core/services/auth.service';
       justify-content: space-between;
       gap: 1rem;
       min-height: 74px;
-      padding: var(--space-3) 0;
+      padding-block: var(--space-3);
     }
     .brand { display: flex; align-items: center; gap: .75rem; color: #fff; flex-shrink: 0; }
     .mark {
@@ -454,13 +454,13 @@ import { AuthService } from './core/services/auth.service';
 
     .main {
       min-height: calc(100vh - 180px);
-      padding: var(--space-4) 0 clamp(1.5rem, 3vw, 2.5rem);
+      padding-block: var(--space-4) clamp(1.5rem, 3vw, 2.5rem);
     }
 
     .footer {
       background: #07111d;
       color: rgba(255,255,255,.7);
-      padding: clamp(1.5rem, 3vw, 2rem) 0 clamp(1rem, 2vw, 1.4rem);
+      padding-block: clamp(1.5rem, 3vw, 2rem) clamp(1rem, 2vw, 1.4rem);
       margin-top: 0;
     }
     .foot-grid {

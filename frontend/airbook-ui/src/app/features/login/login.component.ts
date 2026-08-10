@@ -48,7 +48,7 @@ import { AuthService } from '../../core/services/auth.service';
     </div>
   `,
   styles: [`
-    .wrap { padding: var(--page-y) 0 clamp(1.5rem, 3vw, 2.5rem); }
+    .wrap { padding-block: var(--page-y) clamp(1.5rem, 3vw, 2.5rem); }
     .login-shell { display:grid; grid-template-columns: 1.15fr 1fr; gap:1.5rem; align-items:stretch; max-width:980px; margin:0 auto; }
     .persona { background: linear-gradient(160deg, #06101c, #0f3248 55%, #0a4038); color:#fff; border-radius:20px; padding:1.6rem; }
     .persona h1 { margin:0 0 .35rem; font-size:1.55rem; }
