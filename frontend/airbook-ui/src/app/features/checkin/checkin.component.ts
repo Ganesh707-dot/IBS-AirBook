@@ -8,8 +8,8 @@ import { ApiService, Order, BoardingPass } from '../../core/services/api.service
   standalone: true,
   imports: [FormsModule, CommonModule],
   template: `
-    <div class="container">
-      <div class="card checkin-card">
+    <div class="container page-shell page-stack">
+      <div class="card checkin-card animate-slide-up">
         <h2>Web Check-in & Deliver</h2>
         <p>Enter your settled booking reference to check in and receive a boarding pass.</p>
         <div class="form-group"><label>Booking Reference</label><input [(ngModel)]="ref" placeholder="ABXXXXXXXX"></div>
@@ -52,13 +52,14 @@ import { ApiService, Order, BoardingPass } from '../../core/services/api.service
     </div>
   `,
   styles: [`
-    .checkin-card { max-width: 560px; margin: 0 auto; }
+    .checkin-card { max-width: 560px; margin: 0 auto; width: 100%; }
     h2 { color: var(--navy); margin-bottom: 0.5rem; }
-    .boarding-pass { margin-top: 1.25rem; border: 2px dashed var(--teal); border-radius: 12px; overflow: hidden; }
-    .bp-header { background: var(--navy); color: white; padding: 0.85rem 1rem; display: flex; justify-content: space-between; }
+    .btn { width: 100%; min-height: 44px; margin-top: 0.5rem; }
+    .boarding-pass { margin-top: 1.25rem; border: 2px dashed var(--teal); border-radius: 12px; overflow: hidden; animation: slide-up var(--duration-normal) var(--ease-out) both; }
+    .bp-header { background: var(--navy); color: white; padding: 0.85rem 1rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
     .bp-body { padding: 1rem; display: grid; gap: 1rem; }
     .bp-body small { display: block; color: #667; font-size: 0.75rem; }
-    .route { display: flex; align-items: center; gap: 1rem; }
+    .route { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
     .arrow { color: var(--teal); font-size: 1.4rem; }
     .meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
     .barcode { font-family: monospace; letter-spacing: 1px; background: var(--gray-100); padding: 0.65rem; border-radius: 6px; word-break: break-all; font-size: 0.8rem; }

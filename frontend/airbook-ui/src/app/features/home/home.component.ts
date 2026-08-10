@@ -86,7 +86,7 @@ import { AuthService } from '../../core/services/auth.service';
     </section>
   `,
   styles: [`
-    .hero-grid { display:grid; grid-template-columns: 1.35fr .9fr; gap:2rem; align-items:center; padding: 3.5rem 0 4rem; }
+    .hero-grid { display:grid; grid-template-columns: 1.35fr .9fr; gap: clamp(1.25rem, 3vw, 2rem); align-items:center; padding: clamp(2rem, 5vw, 3.5rem) 0 clamp(2rem, 4vw, 4rem); }
     .copy h1 { font-size: clamp(2.3rem, 4.5vw, 3.6rem); line-height:1.08; margin:1rem 0 .75rem; letter-spacing:-0.03em; max-width:14ch; }
     .lead { opacity:.9; max-width:620px; font-size:1.08rem; line-height:1.55; margin-bottom:1.25rem; }
     .cta { display:flex; gap:.7rem; flex-wrap:wrap; margin-bottom:1.4rem; }
@@ -98,11 +98,11 @@ import { AuthService } from '../../core/services/auth.service';
     .field label { display:block; font-size:.78rem; font-weight:650; margin-bottom:.3rem; }
     .hint { margin:.9rem 0 0; font-size:.82rem; color:#667; }
     .w-full { width:100%; }
-    .section { padding: 2.75rem 0 1rem; }
-    .sec-head { margin-bottom:1.25rem; max-width:720px; }
+    .section { padding: clamp(1.75rem, 4vw, 2.75rem) 0 clamp(0.75rem, 2vw, 1rem); }
+    .sec-head { margin-bottom: var(--section-gap); max-width:720px; }
     .sec-head h2 { margin:0 0 .35rem; font-size:1.7rem; color:var(--navy); letter-spacing:-0.02em; }
     .sec-head p { margin:0; color:#5b6b7c; }
-    .sol { display:flex; flex-direction:column; gap:.55rem; background:#fff; border:1px solid var(--gray-300); border-radius:18px; padding:1.15rem 1.2rem; color:inherit; transition: transform .18s, border-color .18s, box-shadow .18s; min-height:210px; }
+    .sol { display:flex; flex-direction:column; gap:.55rem; background:#fff; border:1px solid var(--gray-300); border-radius:18px; padding:1.15rem 1.2rem; color:inherit; transition: transform var(--duration-normal) var(--ease-out), border-color var(--duration-normal) var(--ease-out), box-shadow var(--duration-normal) var(--ease-out); min-height:210px; }
     .sol:hover { transform:translateY(-3px); border-color:#1ec8b2; box-shadow:0 18px 40px rgba(6,16,28,.08); }
     .sol-top { display:flex; justify-content:space-between; align-items:center; }
     .sol-top i { font-size:1.35rem; color:var(--teal-dark); }
@@ -110,14 +110,20 @@ import { AuthService } from '../../core/services/auth.service';
     .sol p { margin:0; color:#5b6b7c; font-size:.88rem; line-height:1.45; flex:1; }
     .pillars { display:flex; flex-wrap:wrap; gap:.35rem; }
     .pillars span { background:var(--gray-100); border-radius:999px; padding:.18rem .55rem; font-size:.7rem; font-weight:650; color:#445; }
-    .band { margin-top:2rem; background:linear-gradient(100deg,#06101c,#0d2a3a 50%,#0a3d36); color:#fff; padding:2.4rem 0; }
-    .band-grid { display:flex; justify-content:space-between; gap:1.5rem; align-items:center; flex-wrap:wrap; }
+    .band { margin-top: clamp(1.25rem, 3vw, 2rem); background:linear-gradient(100deg,#06101c,#0d2a3a 50%,#0a3d36); color:#fff; padding: clamp(1.75rem, 4vw, 2.4rem) 0; }
+    .band-grid { display:flex; justify-content:space-between; gap: clamp(1rem, 2.5vw, 1.5rem); align-items:center; flex-wrap:wrap; }
     .band h2 { margin:0 0 .45rem; font-size:1.7rem; }
     .band p { margin:0; max-width:640px; opacity:.85; line-height:1.5; }
     .band-actions { display:flex; gap:.65rem; flex-wrap:wrap; }
     @media (max-width:980px) {
-      .hero-grid { grid-template-columns:1fr; padding-top:2.4rem; }
+      .hero-grid { grid-template-columns:1fr; padding-top: clamp(1.5rem, 4vw, 2.4rem); padding-bottom: clamp(1.75rem, 4vw, 2.5rem); }
       .copy h1 { max-width:none; }
+    }
+    @media (max-width:640px) {
+      .hero-grid { gap: var(--section-gap); }
+      .cta { flex-direction:column; align-items:stretch; }
+      .panel { border-radius:16px; }
+      .band-actions { width:100%; }
     }
   `]
 })

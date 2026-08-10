@@ -17,8 +17,8 @@ import { ApiService, Airport, LiveFlight, LiveFlightsResponse } from '../../core
   standalone: true,
   imports: [CommonModule, FormsModule, CardModule, ButtonModule, SelectModule, TagModule, TableModule, ProgressSpinnerModule, MessageModule],
   template: `
-    <div class="container">
-      <div class="head">
+    <div class="container page-shell page-stack">
+      <div class="screen-head">
         <div>
           <h1 class="page-title">Live flight tracker</h1>
           <p class="page-sub">
@@ -67,40 +67,70 @@ import { ApiService, Airport, LiveFlight, LiveFlightsResponse } from '../../core
           <div #mapHost class="map-host"></div>
         </p-card>
         <p-card header="Aircraft list" styleClass="list-card">
-          <p-table [value]="flights" [paginator]="true" [rows]="8" styleClass="p-datatable-sm" [rowHover]="true" selectionMode="single" [(selection)]="selected" (onRowSelect)="onRowSelect($event)">
-            <ng-template pTemplate="header">
-              <tr><th>Callsign</th><th>Country</th><th>Alt (m)</th><th>Speed</th><th></th></tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-f>
-              <tr [pSelectableRow]="f">
-                <td><strong>{{ f.callsign }}</strong></td>
-                <td>{{ f.originCountry }}</td>
-                <td>{{ f.altitude != null ? (f.altitude | number:'1.0-0') : '—' }}</td>
-                <td>{{ f.velocity != null ? (f.velocity | number:'1.0-0') + ' m/s' : '—' }}</td>
-                <td><p-tag [severity]="f.onGround ? 'warn' : 'success'" [value]="f.onGround ? 'GND' : 'AIR'"></p-tag></td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr><td colspan="5">No live traffic in this corridor right now. Try refresh or another OD.</td></tr>
-            </ng-template>
-          </p-table>
+          <div class="table-responsive desktop-table">
+            <p-table [value]="flights" [paginator]="true" [rows]="8" styleClass="p-datatable-sm" [rowHover]="true" selectionMode="single" [(selection)]="selected" (onRowSelect)="onRowSelect($event)">
+              <ng-template pTemplate="header">
+                <tr><th>Callsign</th><th>Country</th><th>Alt (m)</th><th>Speed</th><th></th></tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-f>
+                <tr [pSelectableRow]="f">
+                  <td><strong>{{ f.callsign }}</strong></td>
+                  <td>{{ f.originCountry }}</td>
+                  <td>{{ f.altitude != null ? (f.altitude | number:'1.0-0') : '—' }}</td>
+                  <td>{{ f.velocity != null ? (f.velocity | number:'1.0-0') + ' m/s' : '—' }}</td>
+                  <td><p-tag [severity]="f.onGround ? 'warn' : 'success'" [value]="f.onGround ? 'GND' : 'AIR'"></p-tag></td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr><td colspan="5">No live traffic in this corridor right now. Try refresh or another OD.</td></tr>
+              </ng-template>
+            </p-table>
+          </div>
+          <div class="mobile-flights">
+            @for (f of flights; track f.callsign) {
+              <button type="button" class="flight-card card" (click)="focusFlight(f)">
+                <div class="fc-top">
+                  <strong>{{ f.callsign }}</strong>
+                  <p-tag [severity]="f.onGround ? 'warn' : 'success'" [value]="f.onGround ? 'GND' : 'AIR'"></p-tag>
+                </div>
+                <div class="fc-meta">
+                  <span>{{ f.originCountry }}</span>
+                  <span>{{ f.altitude != null ? (f.altitude | number:'1.0-0') + ' m' : '—' }}</span>
+                  <span>{{ f.velocity != null ? (f.velocity | number:'1.0-0') + ' m/s' : '—' }}</span>
+                </div>
+              </button>
+            } @empty {
+              <p class="empty">No live traffic in this corridor right now.</p>
+            }
+          </div>
         </p-card>
       </div>
     </div>
   `,
   styles: [`
-    .head { display:flex; justify-content:space-between; gap:1rem; align-items:flex-start; }
     .grid { display:grid; grid-template-columns:1.2fr 1.2fr auto; gap:1rem; align-items:end; }
     .field label { display:block; font-size:.8rem; font-weight:600; margin-bottom:.35rem; }
     .meta { display:flex; flex-wrap:wrap; gap:.75rem; align-items:center; margin-top:1rem; font-size:.9rem; }
-    .layout { display:grid; grid-template-columns: 1.4fr 1fr; gap:1rem; margin-top:1rem; }
-    .map-host { height: 520px; width: 100%; border-radius: 12px; overflow:hidden; background:#d9e6f2; }
+    .meta a { word-break: break-all; }
+    .layout { display:grid; grid-template-columns: 1.4fr 1fr; gap: var(--section-gap); margin-top: var(--section-gap); }
+    .map-host { height: 520px; width: 100%; border-radius: 12px; overflow:hidden; background:#d9e6f2; transition: height var(--duration-normal) var(--ease-out); }
     .center { display:flex; justify-content:center; padding:1rem; }
     .mt { margin-top:1rem; display:block; }
     .w-full { width:100%; }
+    .mobile-flights { display:none; gap:.65rem; max-height:420px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+    .flight-card { width:100%; text-align:left; display:grid; gap:.4rem; cursor:pointer; border:none; font:inherit; transition: border-color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out); }
+    .flight-card:hover { border-color:var(--teal); transform: translateY(-1px); }
+    .fc-top { display:flex; justify-content:space-between; align-items:center; gap:.5rem; }
+    .fc-meta { display:flex; flex-wrap:wrap; gap:.5rem .75rem; font-size:.82rem; color:#445; }
+    .empty { color:#667; font-size:.9rem; margin:0; }
     @media (max-width: 960px) {
       .grid, .layout { grid-template-columns:1fr; }
-      .map-host { height: 380px; }
+      .map-host { height: 320px; }
+    }
+    @media (max-width: 768px) {
+      .desktop-table { display:none; }
+      .mobile-flights { display:grid; }
+      .map-host { height: 280px; }
     }
   `]
 })

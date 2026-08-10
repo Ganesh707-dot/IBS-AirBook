@@ -14,7 +14,7 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [FormsModule, CardModule, InputTextModule, PasswordModule, ButtonModule, MessageModule, TagModule, RouterLink],
   template: `
-    <div class="container-wide wrap">
+    <div class="container-wide page-shell wrap">
       <div class="login-shell">
         <aside class="persona">
           <h1>Role-based access</h1>
@@ -48,13 +48,13 @@ import { AuthService } from '../../core/services/auth.service';
     </div>
   `,
   styles: [`
-    .wrap { padding:2rem 0; }
+    .wrap { padding: var(--page-y) 0 clamp(1.5rem, 3vw, 2.5rem); }
     .login-shell { display:grid; grid-template-columns: 1.15fr 1fr; gap:1.5rem; align-items:stretch; max-width:980px; margin:0 auto; }
     .persona { background: linear-gradient(160deg, #06101c, #0f3248 55%, #0a4038); color:#fff; border-radius:20px; padding:1.6rem; }
     .persona h1 { margin:0 0 .35rem; font-size:1.55rem; }
     .persona > p { opacity:.75; margin:0 0 1.1rem; font-size:.92rem; line-height:1.45; }
-    .persona-card { width:100%; text-align:left; display:grid; gap:.25rem; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:1rem 1.05rem; margin-bottom:.7rem; color:#fff; cursor:pointer; }
-    .persona-card:hover { border-color:#1ec8b2; background:rgba(30,200,178,.12); }
+    .persona-card { width:100%; text-align:left; display:grid; gap:.25rem; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:1rem 1.05rem; margin-bottom:.7rem; color:#fff; cursor:pointer; transition: border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out); }
+    .persona-card:hover { border-color:#1ec8b2; background:rgba(30,200,178,.12); transform: translateX(4px); }
     .persona-card strong { font-size:.98rem; }
     .persona-card span { font-size:.78rem; opacity:.7; }
     :host ::ng-deep .login-card { height:100%; }
@@ -66,6 +66,7 @@ import { AuthService } from '../../core/services/auth.service';
     .mb { margin-bottom:1rem; display:block; }
     .back { display:inline-block; margin-top:1rem; font-size:.85rem; }
     @media (max-width:800px) { .login-shell { grid-template-columns:1fr; } }
+    @media (max-width:480px) { .wrap { padding:1rem 0; } .persona { padding:1.25rem; } }
   `]
 })
 export class LoginComponent {

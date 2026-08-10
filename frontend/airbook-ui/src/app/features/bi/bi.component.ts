@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, AfterViewInit, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
@@ -21,7 +21,7 @@ Chart.register(...registerables);
     InputTextModule, MessageModule, ProgressSpinnerModule
   ],
   template: `
-    <div class="container bi-page">
+    <div class="container page-shell page-stack bi-page">
       <div class="hero">
         <div>
           <p-tag [value]="auth.isAnalyst() && !auth.isAdmin() ? 'ANALYST WORKSPACE · NAVIQ BI' : (auth.isAdmin() ? 'ADMIN · ANALYTICS ACCESS' : 'INTELLIGENCE PLANE')" severity="info"></p-tag>
@@ -36,7 +36,7 @@ Chart.register(...registerables);
       } @else if (!dash && loading) {
         <div class="loading"><p-progressSpinner strokeWidth="3" /></div>
       } @else if (dash) {
-        <div class="kpi-grid">
+        <div class="kpi-grid kpi-grid-responsive stagger">
           <div class="kpi"><span>GMV</span><strong>₹{{ dash.kpis.grossMerchandiseValue | number }}</strong></div>
           <div class="kpi"><span>Orders</span><strong>{{ dash.kpis.totalOrders }}</strong></div>
           <div class="kpi"><span>AOV</span><strong>₹{{ dash.kpis.averageOrderValue | number }}</strong></div>
@@ -46,8 +46,8 @@ Chart.register(...registerables);
         </div>
 
         <div class="charts">
-          <p-card header="Revenue trend (14d)"><canvas #revChart></canvas></p-card>
-          <p-card header="OOSD funnel"><canvas #funnelChart></canvas></p-card>
+          <p-card header="Revenue trend (14d)"><div class="chart-wrap"><canvas #revChart></canvas></div></p-card>
+          <p-card header="OOSD funnel"><div class="chart-wrap"><canvas #funnelChart></canvas></div></p-card>
         </div>
 
         <div class="split">
@@ -109,36 +109,46 @@ Chart.register(...registerables);
     </div>
   `,
   styles: [`
-    .bi-page { display:grid; gap:1.1rem; }
-    .hero { display:flex; justify-content:space-between; gap:1rem; align-items:flex-start;
+    .bi-page { display:grid; gap: var(--section-gap); }
+    .hero { display:flex; justify-content:space-between; gap: var(--space-4); align-items:flex-start;
       background: linear-gradient(120deg, #071526, #0f3a4a 60%, #0a5548);
-      color:#fff; border-radius:18px; padding:1.4rem 1.5rem; }
+      color:#fff; border-radius:18px; padding: clamp(1.15rem, 2.5vw, 1.4rem) clamp(1.15rem, 2.5vw, 1.5rem); }
     .hero h1 { margin:.45rem 0 .35rem; font-size:1.65rem; }
     .hero p { margin:0; opacity:.78; max-width:560px; }
     .kpi-grid { display:grid; grid-template-columns: repeat(6, 1fr); gap:0.85rem; }
-    .kpi { background:#fff; border:1px solid var(--gray-300); border-radius:14px; padding:1rem; }
+    .kpi { background:#fff; border:1px solid var(--gray-300); border-radius:14px; padding:1rem; transition: transform var(--duration-fast) var(--ease-out); }
+    .kpi:hover { transform: translateY(-2px); }
     .kpi span { display:block; font-size:0.75rem; color:#667; }
     .kpi strong { font-size:1.15rem; color:var(--navy); }
     .charts { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .chart-wrap { position:relative; height:260px; width:100%; }
+    .chart-wrap canvas { max-height:100%; }
     .split { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
     .insight { border-bottom:1px solid var(--gray-300); padding:0.75rem 0; }
     .insight:last-child { border-bottom:none; }
-    .insight-top { display:flex; justify-content:space-between; gap:.5rem; margin-bottom:0.25rem; align-items:center; }
+    .insight-top { display:flex; justify-content:space-between; gap:.5rem; margin-bottom:0.25rem; align-items:center; flex-wrap:wrap; }
     .ask-row { display:flex; gap:.5rem; margin-bottom:1rem; }
     .w-full { width:100%; }
-    .answer { margin-top:.5rem; background:var(--gray-100); padding:0.85rem; border-radius:10px; }
+    .answer { margin-top:.5rem; background:var(--gray-100); padding:0.85rem; border-radius:10px; animation: slide-up var(--duration-normal) var(--ease-out) both; }
     .answer small { color:#667; }
     h4 { margin:1.25rem 0 .6rem; color:var(--navy); }
-    .forecast-row { display:flex; gap:0.5rem; margin-bottom:0.75rem; align-items:center; }
+    .forecast-row { display:flex; gap:0.5rem; margin-bottom:0.75rem; align-items:center; flex-wrap:wrap; }
     .iata { width:72px; text-transform:uppercase; }
     .muted { color:#667; font-size:.9rem; }
     .loading { display:flex; justify-content:center; padding:3rem; }
     .routes { display:grid; gap:.55rem; }
-    .route-row { display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:.5rem; padding:.55rem 0; border-bottom:1px solid var(--gray-300); }
-    @media (max-width:900px) { .kpi-grid,.charts,.split { grid-template-columns:1fr; } .ask-row { flex-direction:column; } }
+    .route-row { display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:.5rem; padding:.55rem 0; border-bottom:1px solid var(--gray-300); align-items:center; }
+    @media (max-width:900px) {
+      .kpi-grid,.charts,.split { grid-template-columns:1fr; }
+      .ask-row { flex-direction:column; }
+      .route-row { grid-template-columns:1fr; gap:.25rem; }
+    }
+    @media (max-width:480px) {
+      .chart-wrap { height:220px; }
+    }
   `]
 })
-export class BiComponent implements OnInit, AfterViewInit {
+export class BiComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('revChart') revRef?: ElementRef<HTMLCanvasElement>;
   @ViewChild('funnelChart') funnelRef?: ElementRef<HTMLCanvasElement>;
 
@@ -157,6 +167,16 @@ export class BiComponent implements OnInit, AfterViewInit {
 
   ngOnInit() { this.refresh(); }
   ngAfterViewInit() { this.chartsReady = true; this.renderCharts(); }
+  ngOnDestroy() {
+    this.revChart?.destroy();
+    this.funnelChart?.destroy();
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    this.revChart?.resize();
+    this.funnelChart?.resize();
+  }
 
   refresh() {
     this.error = '';
@@ -200,7 +220,12 @@ export class BiComponent implements OnInit, AfterViewInit {
           tension: 0.35
         }]
       },
-      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+      }
     });
     this.funnelChart = new Chart(this.funnelRef.nativeElement, {
       type: 'bar',
@@ -212,7 +237,12 @@ export class BiComponent implements OnInit, AfterViewInit {
           backgroundColor: ['#0a1628', '#132238', '#00b4a0', '#009688']
         }]
       },
-      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+      }
     });
   }
 }

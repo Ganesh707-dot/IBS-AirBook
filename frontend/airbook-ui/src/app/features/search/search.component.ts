@@ -32,8 +32,8 @@ import { AuthService } from '../../core/services/auth.service';
     RadioButtonModule, ProgressSpinnerModule, MessageModule, ToastModule, DividerModule
   ],
   template: `
-    <div class="container">
-      <div class="head">
+    <div class="container page-shell page-stack">
+      <div class="screen-head">
         <div>
           <h1 class="page-title">Book flights</h1>
           <p class="page-sub">Dynamic offers · live demand · FX-aware pricing · full Order → Settle flow</p>
@@ -79,28 +79,51 @@ import { AuthService } from '../../core/services/auth.service';
 
       @if (offers.length && !loading) {
         <p-card header="Available offers" styleClass="mt">
-          <p-table [value]="offers" [paginator]="true" [rows]="6" styleClass="p-datatable-sm" [rowHover]="true">
-            <ng-template pTemplate="header">
-              <tr>
-                <th>Flight</th><th>Date</th><th>Schedule</th><th>Demand</th><th>Cabin</th><th>Price</th><th>Seats</th><th></th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-o>
-              <tr>
-                <td>
-                  <strong>{{ o.airline }}</strong><br>
-                  <small>{{ o.flightNumber }} · {{ o.origin }} → {{ o.destination }}</small>
-                </td>
-                <td>{{ o.travelDate }}</td>
-                <td>{{ o.departureTime }} – {{ o.arrivalTime }}<br><small>{{ o.durationMinutes }} min</small></td>
-                <td><p-tag [severity]="demandSeverity(o.marketStatus)" [value]="o.demandScore + ' · ' + o.marketStatus"></p-tag></td>
-                <td><p-tag [value]="o.fareFamily"></p-tag></td>
-                <td><strong>₹{{ o.basePrice | number }}</strong></td>
-                <td>{{ o.availableSeats }}</td>
-                <td><p-button label="Book" icon="pi pi-ticket" size="small" (onClick)="openBooking(o)"></p-button></td>
-              </tr>
-            </ng-template>
-          </p-table>
+          <div class="table-responsive desktop-offers">
+            <p-table [value]="offers" [paginator]="true" [rows]="6" styleClass="p-datatable-sm" [rowHover]="true">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>Flight</th><th>Date</th><th>Schedule</th><th>Demand</th><th>Cabin</th><th>Price</th><th>Seats</th><th></th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-o>
+                <tr>
+                  <td>
+                    <strong>{{ o.airline }}</strong><br>
+                    <small>{{ o.flightNumber }} · {{ o.origin }} → {{ o.destination }}</small>
+                  </td>
+                  <td>{{ o.travelDate }}</td>
+                  <td>{{ o.departureTime }} – {{ o.arrivalTime }}<br><small>{{ o.durationMinutes }} min</small></td>
+                  <td><p-tag [severity]="demandSeverity(o.marketStatus)" [value]="o.demandScore + ' · ' + o.marketStatus"></p-tag></td>
+                  <td><p-tag [value]="o.fareFamily"></p-tag></td>
+                  <td><strong>₹{{ o.basePrice | number }}</strong></td>
+                  <td>{{ o.availableSeats }}</td>
+                  <td><p-button label="Book" icon="pi pi-ticket" size="small" (onClick)="openBooking(o)"></p-button></td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+
+          <div class="mobile-offers stagger">
+            @for (o of offers; track o.id) {
+              <article class="offer-card card">
+                <div class="offer-head">
+                  <div>
+                    <strong>{{ o.airline }} · {{ o.flightNumber }}</strong>
+                    <small>{{ o.origin }} → {{ o.destination }} · {{ o.travelDate }}</small>
+                  </div>
+                  <strong class="price">₹{{ o.basePrice | number }}</strong>
+                </div>
+                <div class="offer-tags">
+                  <p-tag [severity]="demandSeverity(o.marketStatus)" [value]="o.demandScore + ' · ' + o.marketStatus"></p-tag>
+                  <p-tag [value]="o.fareFamily"></p-tag>
+                  <span class="seats">{{ o.availableSeats }} seats</span>
+                </div>
+                <div class="offer-sched">{{ o.departureTime }} – {{ o.arrivalTime }} · {{ o.durationMinutes }} min</div>
+                <p-button label="Book flight" icon="pi pi-ticket" size="small" styleClass="w-full" (onClick)="openBooking(o)"></p-button>
+              </article>
+            }
+          </div>
         </p-card>
       }
 
@@ -110,7 +133,7 @@ import { AuthService } from '../../core/services/auth.service';
         [modal]="true"
         [style]="{ width: '820px', maxWidth: '95vw' }"
         [draggable]="false"
-        [breakpoints]="{ '960px': '95vw' }">
+        [breakpoints]="{ '960px': '95vw', '640px': '98vw' }">
         @if (selected) {
           <div class="offer-chip">
             <strong>{{ selected.flightNumber }}</strong>
@@ -219,7 +242,6 @@ import { AuthService } from '../../core/services/auth.service';
     </div>
   `,
   styles: [`
-    .head { display:flex; justify-content:space-between; gap:1rem; align-items:flex-start; }
     .search-grid { display:grid; grid-template-columns: 1.2fr 1.2fr 1fr auto; gap:1rem; align-items:end; }
     .field label { display:block; font-size:.8rem; font-weight:600; margin-bottom:.35rem; color:#445; }
     .field.actions { min-width:180px; }
@@ -228,24 +250,42 @@ import { AuthService } from '../../core/services/auth.service';
     .center { display:flex; justify-content:center; padding:2rem; }
     .offer-chip { display:flex; flex-wrap:wrap; gap:.75rem; align-items:center; margin-bottom:1rem; padding:.85rem 1rem; background:#f3f7fb; border-radius:10px; }
     .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
-    .step-actions { display:flex; justify-content:flex-end; gap:.75rem; margin-top:1.25rem; }
+    .step-actions { display:flex; justify-content:flex-end; gap:.75rem; margin-top:1.25rem; flex-wrap:wrap; }
     .hint { color:#667; margin-bottom:.75rem; }
     .anc-list { display:grid; gap:.65rem; }
-    .anc-item { display:flex; justify-content:space-between; gap:1rem; padding:.85rem 1rem; border:1px solid #d7e0ea; border-radius:10px; cursor:pointer; }
+    .anc-item { display:flex; justify-content:space-between; gap:1rem; padding:.85rem 1rem; border:1px solid #d7e0ea; border-radius:10px; cursor:pointer; transition: border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out); }
     .anc-item.on { border-color:#00b4a0; background:#e8f8f5; }
     .anc-item small { display:block; color:#667; margin-top:.2rem; }
-    .anc-right { display:flex; align-items:center; gap:.75rem; font-weight:700; }
+    .anc-right { display:flex; align-items:center; gap:.75rem; font-weight:700; flex-shrink:0; }
     .pay-box { display:grid; grid-template-columns:1.2fr .8fr; gap:1rem; }
     .summary, .pay-methods { background:#f7fafc; border-radius:10px; padding:1rem; }
-    .summary > div { display:flex; justify-content:space-between; margin:.35rem 0; }
+    .summary > div { display:flex; justify-content:space-between; margin:.35rem 0; gap:.5rem; }
     .total { font-size:1.1rem; }
     .pay-methods { display:grid; gap:.85rem; align-content:start; }
-    .pay-methods label { display:flex; align-items:center; gap:.55rem; font-weight:600; }
+    .pay-methods label { display:flex; align-items:center; gap:.55rem; font-weight:600; min-height:44px; }
     .success { text-align:center; padding:1rem 0 0; }
     .success i { font-size:2.5rem; color:#00b4a0; }
     .w-full { width:100%; }
+    .mobile-offers { display:none; gap:.85rem; margin-top:.5rem; }
+    .offer-card { display:grid; gap:.65rem; }
+    .offer-head { display:flex; justify-content:space-between; gap:.75rem; align-items:flex-start; }
+    .offer-head small { display:block; color:#667; margin-top:.2rem; font-size:.78rem; }
+    .price { color:var(--navy); font-size:1.1rem; white-space:nowrap; }
+    .offer-tags { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
+    .seats { font-size:.78rem; color:#667; font-weight:650; }
+    .offer-sched { font-size:.85rem; color:#445; }
     @media (max-width:900px) {
       .search-grid, .form-grid, .pay-box { grid-template-columns:1fr; }
+      .field.actions { min-width:0; }
+    }
+    @media (max-width:768px) {
+      .desktop-offers { display:none; }
+      .mobile-offers { display:grid; }
+      .step-actions { justify-content:stretch; }
+      .step-actions p-button, .step-actions a { flex:1; }
+    }
+    @media (max-width:480px) {
+      .anc-item { flex-direction:column; align-items:flex-start; }
     }
   `]
 })

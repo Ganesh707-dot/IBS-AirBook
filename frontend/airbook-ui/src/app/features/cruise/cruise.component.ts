@@ -24,7 +24,7 @@ import { AuthService } from '../../core/services/auth.service';
         <p class="page-sub light">Shore-to-ship retail with confirmed cabin reservations, excursion packs, and loyalty earn.</p>
       </div>
     </section>
-    <div class="container-wide body">
+    <div class="container-wide page-body page-stack">
       <div class="filters card">
         <div class="field">
           <label>Experience tier</label>
@@ -54,14 +54,14 @@ import { AuthService } from '../../core/services/auth.service';
     </div>
   `,
   styles: [`
-    .page-hero { background:linear-gradient(120deg,#071526,#0f3550 45%,#0a4a55); padding:2.4rem 0 2rem; margin-bottom:1.25rem; }
+    .page-hero { background:linear-gradient(120deg,#071526,#0f3550 45%,#0a4a55); }
     .light { color:#fff; }
-    .page-sub.light { color:rgba(255,255,255,.82); max-width:680px; }
-    .filters { display:flex; gap:1rem; align-items:end; margin-bottom:1rem; }
+    .filters { display:flex; gap: var(--section-gap); align-items:end; margin-bottom: var(--section-gap); flex-wrap: wrap; }
     .field label { display:block; font-size:.75rem; font-weight:650; margin-bottom:.3rem; color:#667; }
     .w { min-width:200px; }
-    .list { display:grid; gap:1rem; }
-    .cruise { display:grid; grid-template-columns:1fr 220px; gap:1.25rem; align-items:center; }
+    .list { display:grid; gap: var(--section-gap); }
+    .cruise { display:grid; grid-template-columns:1fr 220px; gap:1.25rem; align-items:center; transition: transform var(--duration-normal) var(--ease-out), box-shadow var(--duration-normal) var(--ease-out); }
+    .cruise:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(6,16,28,.06); }
     .left h3 { margin:.45rem 0 .2rem; color:var(--navy); font-size:1.25rem; }
     .ship { color:#7a8796; margin:0 0 .45rem; font-size:.88rem; }
     .ports { font-size:.88rem; color:#334; margin:.5rem 0; }
@@ -71,6 +71,7 @@ import { AuthService } from '../../core/services/auth.service';
     .right small { color:#667; }
     .right strong { font-size:1.35rem; color:var(--navy); }
     @media (max-width:800px) { .cruise { grid-template-columns:1fr; } .right { justify-items:start; text-align:left; } }
+    @media (max-width:480px) { .filters { flex-direction:column; align-items:stretch; } .w { min-width:0; width:100%; } }
   `]
 })
 export class CruiseComponent implements OnInit {

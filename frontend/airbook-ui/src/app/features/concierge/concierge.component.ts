@@ -17,11 +17,11 @@ import { AuthService } from '../../core/services/auth.service';
     <section class="page-hero">
       <div class="container-wide">
         <p-tag value="Naviq · AI Tourist Assistance" severity="success"></p-tag>
-        <h1 class="page-title" style="color:#fff;margin-top:.6rem">Where AI meets deep domain expertise</h1>
-        <p class="page-sub" style="color:rgba(255,255,255,.8)">Agentic guidance for disruptions, personalization, hotels, cruises, and loyalty — ask in plain language.</p>
+        <h1 class="page-title light">Where AI meets deep domain expertise</h1>
+        <p class="page-sub light">Agentic guidance for disruptions, personalization, hotels, cruises, and loyalty — ask in plain language.</p>
       </div>
     </section>
-    <div class="container-wide layout">
+    <div class="container-wide page-body layout">
       <div class="chat card">
         @if (!auth.isLoggedIn()) {
           <p-message severity="warn" text="Sign in to chat with the concierge (any role)." styleClass="w-full mb"></p-message>
@@ -65,21 +65,26 @@ import { AuthService } from '../../core/services/auth.service';
     </div>
   `,
   styles: [`
-    .page-hero { background:linear-gradient(120deg,#04161a,#0b3d38 50%,#12324f); padding:2.4rem 0 2rem; margin-bottom:1.25rem; }
-    .layout { display:grid; grid-template-columns:1.5fr .7fr; gap:1.1rem; padding-bottom:2rem; }
+    .page-hero { background:linear-gradient(120deg,#04161a,#0b3d38 50%,#12324f); }
+    .layout { display:grid; grid-template-columns:1.5fr .7fr; gap: var(--section-gap); }
     .prompts { display:flex; flex-wrap:wrap; gap:.45rem; margin-bottom:1rem; }
-    .prompts button { border:1px solid var(--gray-300); background:#fff; border-radius:999px; padding:.4rem .75rem; font-size:.78rem; cursor:pointer; font-weight:650; }
-    .prompts button:hover { border-color:var(--teal); color:var(--teal-dark); }
-    .ask { display:flex; gap:.55rem; }
+    .prompts button { border:1px solid var(--gray-300); background:#fff; border-radius:999px; padding:.45rem .75rem; font-size:.78rem; cursor:pointer; font-weight:650; transition: border-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out); min-height:36px; }
+    .prompts button:hover { border-color:var(--teal); color:var(--teal-dark); transform: translateY(-1px); }
+    .ask { display:flex; gap:.55rem; position:sticky; bottom:0; background:#fff; padding-top:.5rem; }
     .w-full { width:100%; }
     .mb { margin-bottom:1rem; display:block; }
-    .reply { margin-top:1.1rem; background:var(--gray-100); border-radius:14px; padding:1rem 1.1rem; }
+    .reply { margin-top:1.1rem; background:var(--gray-100); border-radius:14px; padding:1rem 1.1rem; animation: slide-up var(--duration-normal) var(--ease-out) both; }
     .reply small { color:#667; font-weight:650; }
     .reply p { margin:.45rem 0 .85rem; line-height:1.55; }
     .actions { display:flex; flex-wrap:wrap; gap:.45rem; }
     .side h3 { margin:0 0 .75rem; color:var(--navy); }
     .side ul { margin:0 0 1.1rem; padding-left:1.1rem; color:#445; line-height:1.7; font-size:.92rem; }
-    @media (max-width:900px) { .layout { grid-template-columns:1fr; } .ask { flex-direction:column; } }
+    @media (max-width:900px) { .layout { grid-template-columns:1fr; } .ask { flex-direction:column; position:static; } }
+    @media (max-width:480px) {
+      .page-hero { padding:1.75rem 0 1.5rem; }
+      .prompts { gap:.35rem; }
+      .prompts button { font-size:.72rem; padding:.4rem .6rem; }
+    }
   `]
 })
 export class ConciergeComponent {

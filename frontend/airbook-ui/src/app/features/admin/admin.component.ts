@@ -24,7 +24,7 @@ import { AuthService } from '../../core/services/auth.service';
     MessageModule, IconFieldModule, InputIconModule
   ],
   template: `
-    <div class="container admin-page">
+    <div class="container page-shell page-stack admin-page">
       <div class="hero">
         <div>
           <p-tag value="ADMIN WORKSPACE" severity="warn"></p-tag>
@@ -60,14 +60,15 @@ import { AuthService } from '../../core/services/auth.service';
       }
 
       <p-card styleClass="table-card">
-        <p-table
-          [value]="filtered"
-          [paginator]="true"
-          [rows]="10"
-          [rowsPerPageOptions]="[10,25,50]"
-          [loading]="loading"
-          styleClass="p-datatable-sm"
-        >
+        <div class="table-responsive desktop-table">
+          <p-table
+            [value]="filtered"
+            [paginator]="true"
+            [rows]="10"
+            [rowsPerPageOptions]="[10,25,50]"
+            [loading]="loading"
+            styleClass="p-datatable-sm"
+          >
           <ng-template pTemplate="header">
             <tr>
               <th>Flight</th>
@@ -94,9 +95,30 @@ import { AuthService } from '../../core/services/auth.service';
             <tr><td colspan="7">No routes found. Add inventory to seed the Offer plane.</td></tr>
           </ng-template>
         </p-table>
+        </div>
+
+        <div class="mobile-routes stagger">
+          @for (r of filtered; track r.id) {
+            <article class="route-card card">
+              <div class="route-top">
+                <strong>{{ r.flightNumber }}</strong>
+                <p-tag [value]="r.fareFamily" [severity]="cabinSeverity(r.fareFamily)"></p-tag>
+              </div>
+              <div class="od">{{ r.origin }} → {{ r.destination }}</div>
+              <div class="route-meta">
+                <span>{{ r.travelDate }}</span>
+                <span>{{ r.departureTime }} – {{ r.arrivalTime }}</span>
+                <span>₹{{ r.basePrice | number }}</span>
+                <span>{{ r.availableSeats }} seats</span>
+              </div>
+            </article>
+          } @empty {
+            <p class="empty">No routes found. Add inventory to seed the Offer plane.</p>
+          }
+        </div>
       </p-card>
 
-      <p-dialog header="Publish route" [(visible)]="showDialog" [modal]="true" [style]="{width:'720px'}" [draggable]="false">
+      <p-dialog header="Publish route" [(visible)]="showDialog" [modal]="true" [style]="{width:'720px', maxWidth:'95vw'}" [draggable]="false" [breakpoints]="{'640px': '98vw'}">
         <div class="form-grid">
           <div class="field"><label>Origin (IATA)</label><input pInputText [(ngModel)]="form.origin" maxlength="3" class="w-full" /></div>
           <div class="field"><label>Destination (IATA)</label><input pInputText [(ngModel)]="form.destination" maxlength="3" class="w-full" /></div>
@@ -120,10 +142,10 @@ import { AuthService } from '../../core/services/auth.service';
     </div>
   `,
   styles: [`
-    .admin-page { display:grid; gap:1.1rem; }
-    .hero { display:flex; justify-content:space-between; gap:1rem; align-items:flex-start;
+    .admin-page { display:grid; gap: var(--section-gap); }
+    .hero { display:flex; justify-content:space-between; gap: var(--space-4); align-items:flex-start;
       background: linear-gradient(120deg, #0b1c2f 0%, #143552 55%, #0d3d3a 100%);
-      color:#fff; border-radius:18px; padding:1.4rem 1.5rem; }
+      color:#fff; border-radius:18px; padding: clamp(1.15rem, 2.5vw, 1.4rem) clamp(1.15rem, 2.5vw, 1.5rem); }
     .hero h1 { margin:.45rem 0 .35rem; font-size:1.7rem; }
     .hero p { margin:0; opacity:.78; max-width:540px; }
     .hero-meta { text-align:right; display:grid; gap:.15rem; }
@@ -142,10 +164,21 @@ import { AuthService } from '../../core/services/auth.service';
     .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
     .field label { display:block; font-size:.78rem; font-weight:650; margin-bottom:.35rem; color:#5b6b7c; }
     :host ::ng-deep .table-card { overflow:hidden; }
+    .mobile-routes { display:none; gap:.75rem; }
+    .route-card { display:grid; gap:.45rem; }
+    .route-top { display:flex; justify-content:space-between; align-items:center; gap:.5rem; }
+    .route-meta { display:flex; flex-wrap:wrap; gap:.45rem .75rem; font-size:.82rem; color:#445; }
+    .empty { color:#667; margin:0; }
     @media (max-width:900px) {
       .kpi-row, .form-grid { grid-template-columns:1fr 1fr; }
       .hero { flex-direction:column; }
       .hero-meta { text-align:left; }
+      .toolbar { flex-direction:column; align-items:stretch; }
+      .toolbar-actions { justify-content:flex-end; }
+    }
+    @media (max-width:768px) {
+      .desktop-table { display:none; }
+      .mobile-routes { display:grid; }
     }
     @media (max-width:600px) {
       .kpi-row, .form-grid { grid-template-columns:1fr; }

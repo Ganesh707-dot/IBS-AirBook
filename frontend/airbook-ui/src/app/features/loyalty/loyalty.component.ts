@@ -12,12 +12,12 @@ import { ApiService, LoyaltyPartner, LoyaltyTier } from '../../core/services/api
     <section class="page-hero">
       <div class="container-wide">
         <p-tag value="Loyalty Platform" severity="warn"></p-tag>
-        <h1 class="page-title" style="color:#fff;margin-top:.6rem">{{ program || 'AirBook Rewards' }}</h1>
-        <p class="page-sub" style="color:rgba(255,255,255,.8)">Configurable tiers and partner offers that accelerate member engagement across air, hotel, and cruise.</p>
+        <h1 class="page-title light">{{ program || 'AirBook Rewards' }}</h1>
+        <p class="page-sub light">Configurable tiers and partner offers that accelerate member engagement across air, hotel, and cruise.</p>
       </div>
     </section>
-    <div class="container-wide body">
-      <div class="tiers">
+    <div class="container-wide page-body page-stack">
+      <div class="tiers stagger">
         @for (t of tiers; track t.code) {
           <article class="tier card" [class.diamond]="t.code==='DIAMOND'">
             <p-tag [value]="t.code" [severity]="t.code==='DIAMOND' ? 'warn' : 'secondary'"></p-tag>
@@ -27,8 +27,8 @@ import { ApiService, LoyaltyPartner, LoyaltyTier } from '../../core/services/api
           </article>
         }
       </div>
-      <h2 class="page-title" style="font-size:1.35rem;margin-top:1.5rem">Partner offers</h2>
-      <div class="partners">
+      <h2 class="section-title">Partner offers</h2>
+      <div class="partners stagger">
         @for (p of partners; track p.name) {
           <div class="partner card">
             <strong>{{ p.name }}</strong>
@@ -40,13 +40,15 @@ import { ApiService, LoyaltyPartner, LoyaltyTier } from '../../core/services/api
     </div>
   `,
   styles: [`
-    .page-hero { background:linear-gradient(120deg,#1a1408,#3d2e14 40%,#0f2a33); padding:2.4rem 0 2rem; margin-bottom:1.25rem; }
-    .body { padding-bottom:2rem; }
-    .tiers { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
+    .page-hero { background:linear-gradient(120deg,#1a1408,#3d2e14 40%,#0f2a33); }
+    .tiers { display:grid; grid-template-columns:repeat(4,1fr); gap: var(--section-gap); }
+    .section-title { margin: var(--space-6) 0 var(--space-4); font-size: clamp(1.15rem, 2vw, 1.35rem); color: var(--navy); font-weight: 800; }
     .tier h3 { margin:.5rem 0 .25rem; color:var(--navy); }
     .th { color:#7a8796; font-size:.85rem; margin:0 0 .45rem; }
+    .tier { transition: transform var(--duration-normal) var(--ease-out), box-shadow var(--duration-normal) var(--ease-out); }
+    .tier:hover { transform: translateY(-2px); }
     .tier.diamond { border-color:#c4a35a; box-shadow:0 12px 36px rgba(196,163,90,.18); }
-    .partners { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
+    .partners { display:grid; grid-template-columns:repeat(4,1fr); gap: var(--section-gap); }
     .partner { display:grid; gap:.45rem; }
     .partner p { margin:0; color:#445; font-size:.9rem; }
     @media (max-width:1000px) { .tiers, .partners { grid-template-columns:1fr 1fr; } }

@@ -24,7 +24,7 @@ import { AuthService } from '../../core/services/auth.service';
         <p class="page-sub light">Enterprise hospitality inventory with flight-to-stay cross-sell, tier benefits, and confirmed reservations.</p>
       </div>
     </section>
-    <div class="container-wide body">
+    <div class="container-wide page-body page-stack">
       <div class="filters card">
         <div class="field">
           <label>Hub airport</label>
@@ -61,15 +61,14 @@ import { AuthService } from '../../core/services/auth.service';
     </div>
   `,
   styles: [`
-    .page-hero { background:linear-gradient(120deg,#1a1208,#3a2a12 40%,#0d2a28); padding:2.4rem 0 2rem; margin-bottom:1.25rem; }
+    .page-hero { background:linear-gradient(120deg,#1a1208,#3a2a12 40%,#0d2a28); }
     .light { color:#fff; }
-    .page-sub.light { color:rgba(255,255,255,.82); max-width:680px; }
-    .body { padding-bottom:2rem; }
-    .filters { display:flex; gap:1rem; align-items:end; flex-wrap:wrap; margin-bottom:1.1rem; }
+    .filters { display:flex; gap: var(--section-gap); align-items:end; flex-wrap:wrap; margin-bottom: var(--section-gap); }
     .field label { display:block; font-size:.75rem; font-weight:650; margin-bottom:.3rem; color:#667; }
     .w { min-width:180px; }
-    .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
-    .stay { background:#fff; border:1px solid var(--gray-300); border-radius:18px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 12px 30px rgba(6,16,28,.05); }
+    .grid { display:grid; grid-template-columns:repeat(4,1fr); gap: var(--section-gap); }
+    .stay { background:#fff; border:1px solid var(--gray-300); border-radius:18px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 12px 30px rgba(6,16,28,.05); transition: transform var(--duration-normal) var(--ease-out), box-shadow var(--duration-normal) var(--ease-out); }
+    .stay:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(6,16,28,.08); }
     .media { min-height:110px; padding:1rem; display:flex; justify-content:space-between; align-items:flex-start;
       background: linear-gradient(135deg, #2a1d0c, #0f3a36); color:#fff; }
     .hub { font-size:.75rem; opacity:.85; font-weight:650; text-align:right; }
@@ -82,7 +81,7 @@ import { AuthService } from '../../core/services/auth.service';
     .foot { display:flex; justify-content:space-between; align-items:center; margin-top:.35rem; gap:.5rem; }
     .foot strong { color:var(--navy); }
     @media (max-width:1200px) { .grid { grid-template-columns:repeat(2,1fr); } }
-    @media (max-width:700px) { .grid { grid-template-columns:1fr; } }
+    @media (max-width:700px) { .grid { grid-template-columns:1fr; } .filters { flex-direction:column; align-items:stretch; } .w { min-width:0; width:100%; } }
   `]
 })
 export class StaysComponent implements OnInit {
